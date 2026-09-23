@@ -10,10 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AramaRouteImport } from './routes/arama'
 import { Route as ErkekRouteImport } from './routes/erkek'
+import { Route as FavorilerRouteImport } from './routes/favoriler'
+import { Route as GizlilikRouteImport } from './routes/gizlilik'
+import { Route as HakkimizdaRouteImport } from './routes/hakkimizda'
+import { Route as IadeRouteImport } from './routes/iade'
+import { Route as IletisimRouteImport } from './routes/iletisim'
 import { Route as KadinRouteImport } from './routes/kadin'
 import { Route as KoleksiyonRouteImport } from './routes/koleksiyon'
+import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as TeslimatRouteImport } from './routes/teslimat'
 import { Route as YeniGelenlerRouteImport } from './routes/yeni-gelenler'
+import { Route as YonetimRouteImport } from './routes/yonetim'
 import { Route as UrunSlugRouteImport } from './routes/urun.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -21,9 +30,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AramaRoute = AramaRouteImport.update({
+  id: '/arama',
+  path: '/arama',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ErkekRoute = ErkekRouteImport.update({
   id: '/erkek',
   path: '/erkek',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavorilerRoute = FavorilerRouteImport.update({
+  id: '/favoriler',
+  path: '/favoriler',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GizlilikRoute = GizlilikRouteImport.update({
+  id: '/gizlilik',
+  path: '/gizlilik',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HakkimizdaRoute = HakkimizdaRouteImport.update({
+  id: '/hakkimizda',
+  path: '/hakkimizda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IadeRoute = IadeRouteImport.update({
+  id: '/iade',
+  path: '/iade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IletisimRoute = IletisimRouteImport.update({
+  id: '/iletisim',
+  path: '/iletisim',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KadinRoute = KadinRouteImport.update({
@@ -36,9 +75,24 @@ const KoleksiyonRoute = KoleksiyonRouteImport.update({
   path: '/koleksiyon',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfilRoute = ProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeslimatRoute = TeslimatRouteImport.update({
+  id: '/teslimat',
+  path: '/teslimat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const YeniGelenlerRoute = YeniGelenlerRouteImport.update({
   id: '/yeni-gelenler',
   path: '/yeni-gelenler',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const YonetimRoute = YonetimRouteImport.update({
+  id: '/yonetim',
+  path: '/yonetim',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UrunSlugRoute = UrunSlugRouteImport.update({
@@ -49,52 +103,125 @@ const UrunSlugRoute = UrunSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/arama': typeof AramaRoute
   '/erkek': typeof ErkekRoute
+  '/favoriler': typeof FavorilerRoute
+  '/gizlilik': typeof GizlilikRoute
+  '/hakkimizda': typeof HakkimizdaRoute
+  '/iade': typeof IadeRoute
+  '/iletisim': typeof IletisimRoute
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
+  '/profil': typeof ProfilRoute
+  '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arama': typeof AramaRoute
   '/erkek': typeof ErkekRoute
+  '/favoriler': typeof FavorilerRoute
+  '/gizlilik': typeof GizlilikRoute
+  '/hakkimizda': typeof HakkimizdaRoute
+  '/iade': typeof IadeRoute
+  '/iletisim': typeof IletisimRoute
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
+  '/profil': typeof ProfilRoute
+  '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/arama': typeof AramaRoute
   '/erkek': typeof ErkekRoute
+  '/favoriler': typeof FavorilerRoute
+  '/gizlilik': typeof GizlilikRoute
+  '/hakkimizda': typeof HakkimizdaRoute
+  '/iade': typeof IadeRoute
+  '/iletisim': typeof IletisimRoute
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
+  '/profil': typeof ProfilRoute
+  '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/erkek' | '/kadin' | '/koleksiyon' | '/yeni-gelenler' | '/urun/$slug'
+    | '/'
+    | '/arama'
+    | '/erkek'
+    | '/favoriler'
+    | '/gizlilik'
+    | '/hakkimizda'
+    | '/iade'
+    | '/iletisim'
+    | '/kadin'
+    | '/koleksiyon'
+    | '/profil'
+    | '/teslimat'
+    | '/yeni-gelenler'
+    | '/yonetim'
+    | '/urun/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/erkek' | '/kadin' | '/koleksiyon' | '/yeni-gelenler' | '/urun/$slug'
+    | '/'
+    | '/arama'
+    | '/erkek'
+    | '/favoriler'
+    | '/gizlilik'
+    | '/hakkimizda'
+    | '/iade'
+    | '/iletisim'
+    | '/kadin'
+    | '/koleksiyon'
+    | '/profil'
+    | '/teslimat'
+    | '/yeni-gelenler'
+    | '/yonetim'
+    | '/urun/$slug'
   id:
     | '__root__'
     | '/'
+    | '/arama'
     | '/erkek'
+    | '/favoriler'
+    | '/gizlilik'
+    | '/hakkimizda'
+    | '/iade'
+    | '/iletisim'
     | '/kadin'
     | '/koleksiyon'
+    | '/profil'
+    | '/teslimat'
     | '/yeni-gelenler'
+    | '/yonetim'
     | '/urun/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AramaRoute: typeof AramaRoute
   ErkekRoute: typeof ErkekRoute
+  FavorilerRoute: typeof FavorilerRoute
+  GizlilikRoute: typeof GizlilikRoute
+  HakkimizdaRoute: typeof HakkimizdaRoute
+  IadeRoute: typeof IadeRoute
+  IletisimRoute: typeof IletisimRoute
   KadinRoute: typeof KadinRoute
   KoleksiyonRoute: typeof KoleksiyonRoute
+  ProfilRoute: typeof ProfilRoute
+  TeslimatRoute: typeof TeslimatRoute
   YeniGelenlerRoute: typeof YeniGelenlerRoute
+  YonetimRoute: typeof YonetimRoute
   UrunSlugRoute: typeof UrunSlugRoute
 }
 
@@ -107,11 +234,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/arama': {
+      id: '/arama'
+      path: '/arama'
+      fullPath: '/arama'
+      preLoaderRoute: typeof AramaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/erkek': {
       id: '/erkek'
       path: '/erkek'
       fullPath: '/erkek'
       preLoaderRoute: typeof ErkekRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favoriler': {
+      id: '/favoriler'
+      path: '/favoriler'
+      fullPath: '/favoriler'
+      preLoaderRoute: typeof FavorilerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gizlilik': {
+      id: '/gizlilik'
+      path: '/gizlilik'
+      fullPath: '/gizlilik'
+      preLoaderRoute: typeof GizlilikRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hakkimizda': {
+      id: '/hakkimizda'
+      path: '/hakkimizda'
+      fullPath: '/hakkimizda'
+      preLoaderRoute: typeof HakkimizdaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iade': {
+      id: '/iade'
+      path: '/iade'
+      fullPath: '/iade'
+      preLoaderRoute: typeof IadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iletisim': {
+      id: '/iletisim'
+      path: '/iletisim'
+      fullPath: '/iletisim'
+      preLoaderRoute: typeof IletisimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kadin': {
@@ -128,11 +297,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KoleksiyonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profil': {
+      id: '/profil'
+      path: '/profil'
+      fullPath: '/profil'
+      preLoaderRoute: typeof ProfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teslimat': {
+      id: '/teslimat'
+      path: '/teslimat'
+      fullPath: '/teslimat'
+      preLoaderRoute: typeof TeslimatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/yeni-gelenler': {
       id: '/yeni-gelenler'
       path: '/yeni-gelenler'
       fullPath: '/yeni-gelenler'
       preLoaderRoute: typeof YeniGelenlerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/yonetim': {
+      id: '/yonetim'
+      path: '/yonetim'
+      fullPath: '/yonetim'
+      preLoaderRoute: typeof YonetimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/urun/$slug': {
@@ -147,10 +337,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AramaRoute: AramaRoute,
   ErkekRoute: ErkekRoute,
+  FavorilerRoute: FavorilerRoute,
+  GizlilikRoute: GizlilikRoute,
+  HakkimizdaRoute: HakkimizdaRoute,
+  IadeRoute: IadeRoute,
+  IletisimRoute: IletisimRoute,
   KadinRoute: KadinRoute,
   KoleksiyonRoute: KoleksiyonRoute,
+  ProfilRoute: ProfilRoute,
+  TeslimatRoute: TeslimatRoute,
   YeniGelenlerRoute: YeniGelenlerRoute,
+  YonetimRoute: YonetimRoute,
   UrunSlugRoute: UrunSlugRoute,
 }
 export const routeTree = rootRouteImport

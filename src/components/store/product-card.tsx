@@ -10,7 +10,7 @@ export function ProductCard({product}:{product:Product}) {
   const {favorites,toggleFavorite,addToCart}=useStore();
   const [quickOpen,setQuickOpen]=useState(false);
   const [size,setSize]=useState<Size | null>(null);
-  const [color,setColor]=useState(product.colors[0].name);
+   const [color,setColor]=useState(product.colors[0]?.name??'');
   return <article className="group min-w-0">
     <div className="relative overflow-hidden image-soft">
       <Link to="/urun/$slug" params={{slug:product.slug}} className="block aspect-[3/4] overflow-hidden" aria-label={`${product.name} ürününü incele`}>

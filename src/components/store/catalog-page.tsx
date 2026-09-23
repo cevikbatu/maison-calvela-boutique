@@ -4,6 +4,7 @@ import { SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { categories, products, type CategorySlug, type Gender } from '@/data/catalog';
 import { ProductGrid } from './product-card';
+import { searchProducts } from '@/lib/store-search';
 
 type Props={title:string;eyebrow?:string;intro?:string;gender?:Gender;category?:CategorySlug;newOnly?:boolean;query?:string};
 export function CatalogPage({title,eyebrow='KOLEKSİYON',intro,gender,category,newOnly=false,query}:Props){
@@ -13,7 +14,7 @@ export function CatalogPage({title,eyebrow='KOLEKSİYON',intro,gender,category,n
   const [sort,setSort]=useState('featured');
   const [filtersOpen,setFiltersOpen]=useState(false);
   const filtered=useMemo(()=>{
-    let list=products.filter(p=>p.visible && (!gender||p.gender===gender) && (!newOnly||p.newArrival) && (chosenCategory==='all'||p.category===chosenCategory) && (chosenSize==='all'||p.sizes.includes(chosenSize as 'S')) && (maxPrice==='all'||p.price<=Number(maxPrice)) && (!query||`${p.name} ${p.description} ${p.category} ${p.gender}`.toLocaleLowerCase('tr').includes(query.toLocaleLowerCase('tr'))));
+    let list=(query?searchProducts(query):products).filter(p=>p.visible && (!gender||p.gender===gender) && (!newOnly||p.newArrival) && (chosenCategory==='all'||p.category===chosenCategory) && (chosenSize==='all'||p.sizes.includes(chosenSize as 'S')) && (maxPrice==='all'||p.price<=Number(maxPrice)));
     if(sort==='low')list=[...list].sort((a,b)=>a.price-b.price);
     if(sort==='high')list=[...list].sort((a,b)=>b.price-a.price);
     if(sort==='name')list=[...list].sort((a,b)=>a.name.localeCompare(b.name,'tr'));
