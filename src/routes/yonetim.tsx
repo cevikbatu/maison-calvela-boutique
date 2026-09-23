@@ -33,19 +33,23 @@ function Admin() {
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
-  const checkAccess = useCallback(async () => {
+  const checkAccess = useCallback(async (active: () => boolean) => {
     try {
       const { available } = await getOwnerSetupStatus();
+      if (!active()) return;
       setSetupAvailable(available);
       const { data, error: userError } = await supabase.auth.getUser();
+      if (!active()) return;
       if (userError || !data.user) { setState('login'); return; }
       try { await verifyAdmin(); setState('authorized'); return; } catch { /* not yet an admin */ }
+      if (!active()) return;
       if (available && data.user.email_confirmed_at) {
         setState('set-password');
       } else {
         setState('denied');
       }
     } catch {
+      if (!active()) return;
       setError('Yönetim durumu kontrol edilemedi. Lütfen yeniden deneyin.');
       setState('denied');
     }
@@ -55,7 +59,7 @@ function Admin() {
     let active = true;
     // Supabase handles the invitation link and persists the verified session.
     // Wait for its initialization before checking the owner state.
-    void checkAccess().then(() => { if (!active) return; });
+    void checkAccess(() => active);
     return () => { active = false; };
   }, [checkAccess]);
 
@@ -98,7 +102,7 @@ function Admin() {
     try { await verifyAdmin(); setState('authorized'); }
     catch {
       // A verified invited owner can retry the one-time activation without another invite.
-      if (setupAvailable && data.user.email_confirmed_at) setState('set-password');
+      if (setupAvailable && data.user.email === 'cevikbatu11@gmail.com' && data.user.email_confirmed_at) setState('set-password');
       else { await supabase.auth.signOut(); setError('Bu hesap için yönetici yetkisi tanımlanmamış.'); }
     }
     setBusy(false);
