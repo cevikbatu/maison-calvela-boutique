@@ -1,0 +1,25 @@
+INSERT INTO public.categories(slug,title) VALUES ('tshirt','T-shirt'),('polo','Polo Yaka'),('uzun-kollu','Uzun Kollu') ON CONFLICT(slug) DO NOTHING;
+INSERT INTO public.collections(slug,title,description,published) VALUES ('essentials','The Essential Edit','Gündelik giyimin özenli yorumu.',true) ON CONFLICT(slug) DO NOTHING;
+DO $$ DECLARE r record; cid uuid; pid uuid; co jsonb; urls text[]; BEGIN FOR r IN SELECT * FROM (VALUES
+('kadın-essentiel-beyaz-tshirt','Essentiel Beyaz T-shirt','kadin','tshirt',1890,'Günlük gardırobun sessiz imzası. Tok dokusu ve kusursuz çizgisiyle her anınıza eşlik eder.','%100 premium pamuk, 220 g/m²','Kırık Beyaz','ivory','Siyah','black','women-tshirt.jpg','women-tshirt-02.jpg',true,true),
+('kadın-noir-siyah-tshirt','Noir Siyah T-shirt','kadin','tshirt',1890,'Zamansız siyahın yalın ama güçlü yorumu. Özenle düşünülmüş bir temel parça.','%100 premium pamuk, 220 g/m²','Siyah','black','Kırık Beyaz','ivory','women-tshirt-02.jpg','women-tshirt.jpg',false,false),
+('kadın-signature-siyah-polo','Signature Siyah Polo','kadin','polo',2490,'Modern silueti rafine dokuyla buluşturan, gündüzden akşama kolayca taşınan polo.','%96 pamuk, %4 elastan','Siyah','black','Kırık Beyaz','ivory','women-polo.jpg','women-polo-02.jpg',true,true),
+('kadın-atelier-ekru-polo','Atelier Ekru Polo','kadin','polo',2490,'Yumuşak ekru tonu ve zarif yaka detayıyla sade şıklığın yeni hali.','%96 pamuk, %4 elastan','Kırık Beyaz','ivory','Siyah','black','women-polo-02.jpg','women-polo.jpg',false,false),
+('kadın-forme-zeytin-uzun-kollu','Forme Zeytin Uzun Kollu','kadin','uzun-kollu',2890,'Hafif örgüsü ve doğal zeytin tonuyla mevsimler arası zarif bir geçiş.','%70 pamuk, %30 modal ince triko','Zeytin','olive','Vizon','taupe','women-longsleeve.jpg','women-longsleeve-02.jpg',true,true),
+('kadın-ligne-vizon-uzun-kollu','Ligne Vizon Uzun Kollu','kadin','uzun-kollu',2890,'İnce ribana dokusuyla bedene uyum sağlayan, çok yönlü bir katman.','%70 pamuk, %30 modal ince triko','Vizon','taupe','Zeytin','olive','women-longsleeve-02.jpg','women-longsleeve.jpg',false,false),
+('erkek-essentiel-siyah-tshirt','Essentiel Siyah T-shirt','erkek','tshirt',1890,'Tok pamuk dokusu ve temiz hatlarıyla her gün yeniden giyilecek bir klasik.','%100 premium pamuk, 220 g/m²','Siyah','black','Kırık Beyaz','ivory','men-tshirt.jpg','men-tshirt-02.jpg',true,true),
+('erkek-noir-ekru-tshirt','Noir Ekru T-shirt','erkek','tshirt',1890,'Sade ekru tonu ve dengeli kesimiyle gardırobun en güvenilir parçası.','%100 premium pamuk, 220 g/m²','Kırık Beyaz','ivory','Siyah','black','men-tshirt-02.jpg','men-tshirt.jpg',false,false),
+('erkek-signature-ekru-polo','Signature Ekru Polo','erkek','polo',2490,'Klasik polonun çağdaş yorumunda rahatlık ve zarafet bir araya gelir.','%96 pamuk, %4 elastan','Kırık Beyaz','ivory','Zeytin','olive','men-polo.jpg','men-polo-02.jpg',true,true),
+('erkek-atelier-zeytin-polo','Atelier Zeytin Polo','erkek','polo',2490,'Doğal zeytin tonu ve yumuşak dokusuyla çabasız bir duruş.','%96 pamuk, %4 elastan','Zeytin','olive','Kırık Beyaz','ivory','men-polo-02.jpg','men-polo.jpg',false,false),
+('erkek-forme-antrasit-uzun-kollu','Forme Antrasit Uzun Kollu','erkek','uzun-kollu',2890,'Hafif triko yapısıyla yeni sezonun sakin ve güçlü silueti.','%70 pamuk, %30 modal ince triko','Antrasit','charcoal','Taş','stone','men-longsleeve.jpg','men-longsleeve-02.jpg',true,true),
+('erkek-ligne-tas-uzun-kollu','Ligne Taş Uzun Kollu','erkek','uzun-kollu',2890,'Taş rengiyle doğal, ince örgüsüyle konforlu. Katmanlı giyimin rafine hali.','%70 pamuk, %30 modal ince triko','Taş','stone','Antrasit','charcoal','men-longsleeve-02.jpg','men-longsleeve.jpg',false,false)
+) AS v(slug,title,gender,category,price,description,fabric,color1,token1,color2,token2,image1,image2,featured,new_arrival) LOOP
+SELECT id INTO cid FROM public.categories WHERE slug=r.category;
+co=jsonb_build_array(jsonb_build_object('name',r.color1,'token',r.token1),jsonb_build_object('name',r.color2,'token',r.token2));
+INSERT INTO public.products(slug,title,gender,category_id,description,fabric,fit,care,sizes,colors,published,featured,new_arrival) VALUES(r.slug,r.title,r.gender,cid,r.description,r.fabric,'Modern, rahat kesim. Standart bedeninizi tercih edebilirsiniz.','30°C hassas yıkama. Ters çevirerek yıkayınız. Düşük ısıda ütüleyiniz.',ARRAY['XS','S','M','L','XL'],co,true,r.featured,r.new_arrival) ON CONFLICT(slug) DO NOTHING;
+SELECT id INTO pid FROM public.products WHERE slug=r.slug;
+INSERT INTO public.product_prices(product_id,price) VALUES(pid,r.price) ON CONFLICT(product_id) DO NOTHING;
+INSERT INTO public.product_images(product_id,url,alt,sort_order) SELECT pid,'/images/'||r.image1,r.title,0 WHERE NOT EXISTS(SELECT 1 FROM public.product_images WHERE product_id=pid AND sort_order=0);
+INSERT INTO public.product_images(product_id,url,alt,sort_order) SELECT pid,'/images/'||r.image2,r.title,1 WHERE NOT EXISTS(SELECT 1 FROM public.product_images WHERE product_id=pid AND sort_order=1);
+INSERT INTO public.product_collections(product_id,collection_id) SELECT pid,id FROM public.collections WHERE slug='essentials' ON CONFLICT DO NOTHING;
+END LOOP; END $$;

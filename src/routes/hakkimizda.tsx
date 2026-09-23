@@ -3,9 +3,10 @@ import { InfoPage } from '@/components/store/info-page';
 import { pageMeta } from '@/lib/page-meta';
 
 export const Route = createFileRoute('/hakkimizda')({
-  head: () => pageMeta('Hakkımızda', 'Maison Calvela: sadelik, rafine detaylar ve zamansız giyim anlayışı.'),
-  component: () => <InfoPage eyebrow="BİZİM HİKÂYEMİZ" title="Maison Calvela" paragraphs={[
-    'Maison Calvela, günlük giyimin en sade halini özenle yeniden düşünür. Kadın ve erkek için tasarlanan parçalarımızda dengeli siluetler, dikkatle seçilmiş dokular ve sessiz bir özgüven buluşur.',
-    'Her koleksiyon, sezonlardan bağımsız bir gardırobun parçası olmayı amaçlar. Gösterişten uzak ama etkisi kalıcı bir stil; Maison Calvela’nın çıkış noktasıdır.',
+  head: () => pageMeta('Hikâyemiz', 'Maison Calvela’nın kendi tekstil şirketinde kumaştan son sevkiyata uzanan özenli üretim yolculuğu.'),
+  component: () => <InfoPage eyebrow="MAISON CALVELA / HİKÂYEMİZ" title="Bir parçanın ardındaki özen." paragraphs={[
+    'Maison Calvela’da bir giysinin hikâyesi, kumaşın seçimiyle başlar. Kadın ve erkek için tasarladığımız her parçanın üretimi, kendi tekstil şirketimizde, başlangıcından son adımına kadar yakından takip edilir.',
+    'Kumaş tedariği, kesim, dikim, ütü, paketleme ve sevkiyat: Her aşama aynı sorumluluğun parçasıdır. El işçiliğine duyulan saygı, düzenli kalite kontrolü ve küçük detaylara gösterilen dikkat, ortaya çıkan parçanın karakterini belirler.',
+    'Amacımız gösterişli vaatler değil; giyildiğinde hissedilen kalite ve yıllarca yer bulabilecek sade, güçlü tasarımlardır.',
   ]}/> ,
 });
