@@ -1,0 +1,14 @@
+import { Ruler } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import type { Product } from '@/data/catalog';
+
+const measures = [['chest','Göğüs'],['shoulder','Omuz'],['length','Ürün boyu'],['sleeve','Kol boyu']] as const;
+
+export function SizeGuide({product,open,onOpenChange}:{product:Product;open:boolean;onOpenChange:(open:boolean)=>void}){
+  const rows=product.sizes.map(size=>({size,measure:product.sizeMeasurements?.[size]})).filter(row=>row.measure&&Object.values(row.measure).some(Boolean));
+  return <Sheet open={open} onOpenChange={onOpenChange}><SheetContent side="right" className="w-[min(540px,100vw)] overflow-y-auto bg-background p-6 sm:max-w-[540px] md:p-10"><SheetHeader className="text-left"><Ruler size={25} strokeWidth={1}/><SheetTitle className="editorial-title mt-5 text-5xl font-normal">Beden Rehberi</SheetTitle><SheetDescription>{product.name}</SheetDescription></SheetHeader>
+    {(product.modelHeight||product.modelSize||product.fitNote)&&<div className="mt-8 space-y-2 border-y border-border py-5 text-sm text-ink-soft">{product.modelHeight&&<p>Model boyu: {product.modelHeight}</p>}{product.modelSize&&<p>Modelin giydiği beden: {product.modelSize}</p>}{product.fitNote&&<p>{product.fitNote}</p>}</div>}
+    {rows.length>0&&<div className="mt-8 overflow-x-auto"><table className="w-full min-w-[400px] border-collapse text-left text-xs"><caption className="mb-3 text-left text-sm font-medium">Ürün ölçüleri (cm)</caption><thead><tr className="border-b border-border"><th className="py-3">Beden</th>{measures.map(([,label])=><th key={label} className="py-3">{label}</th>)}</tr></thead><tbody>{rows.map(({size,measure})=><tr key={size} className="border-b border-border"><th className="py-3">{size}</th>{measures.map(([key])=><td key={key} className="py-3">{measure?.[key]||'—'}</td>)}</tr>)}</tbody></table></div>}
+    <div className="mt-10 border-t border-border pt-7"><h3 className="font-display text-3xl">Nasıl ölçülür?</h3><div className="mt-5 space-y-4 text-sm leading-relaxed text-muted-foreground"><p>Sevdiğiniz bir üst parçayı düz bir yüzeye serin. Yumuşak bir mezura ile ölçün; kumaşı germeyin.</p><p><strong className="text-foreground">Göğüs</strong> · Kol altından kol altına düz genişlik. <strong className="text-foreground">Omuz</strong> · İki omuz dikişi arası.</p><p><strong className="text-foreground">Ürün boyu</strong> · Omuzun en yüksek noktasından etek ucuna. <strong className="text-foreground">Kol boyu</strong> · Omuz dikişinden manşet ucuna.</p></div>{rows.length===0&&<p className="mt-5 text-xs text-muted-foreground">Ürüne ait doğrulanmış sayısal ölçüler henüz paylaşılmadı.</p>}</div><Button variant="luxuryOutline" className="mt-8 w-full" onClick={()=>onOpenChange(false)}>Kapat</Button></SheetContent></Sheet>;
+}
