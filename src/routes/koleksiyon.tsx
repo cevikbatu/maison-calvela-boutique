@@ -1,0 +1,3 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { CatalogPage } from '@/components/store/catalog-page';
+export const Route=createFileRoute('/koleksiyon')({head:()=>({meta:[{title:'Koleksiyon | Maison Calvela'},{name:'description',content:'Maison Calvela kadın ve erkek koleksiyonunun tamamını keşfedin.'},{property:'og:title',content:'Koleksiyon | Maison Calvela'},{property:'og:description',content:'Maison Calvela kadın ve erkek koleksiyonunun tamamını keşfedin.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:()=> <CatalogPage title="Koleksiyon" eyebrow="MAISON CALVELA" intro="Maison Calvela kadın ve erkek koleksiyonunun tamamını keşfedin." />});

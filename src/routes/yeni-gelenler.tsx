@@ -1,0 +1,3 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { CatalogPage } from '@/components/store/catalog-page';
+export const Route=createFileRoute('/yeni-gelenler')({head:()=>({meta:[{title:'Yeni Gelenler | Maison Calvela'},{name:'description',content:'Maison Calvela yeni sezon kadın ve erkek tasarımları.'},{property:'og:title',content:'Yeni Gelenler | Maison Calvela'},{property:'og:description',content:'Maison Calvela yeni sezon kadın ve erkek tasarımları.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:()=> <CatalogPage title="Yeni Gelenler" eyebrow="MAISON CALVELA" intro="Maison Calvela yeni sezon kadın ve erkek tasarımları." newOnly/>});

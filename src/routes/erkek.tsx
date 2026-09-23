@@ -1,0 +1,5 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { CatalogPage } from '@/components/store/catalog-page';
+import type { CategorySlug } from '@/data/catalog';
+export const Route=createFileRoute('/erkek')({validateSearch:(search:Record<string,unknown>)=>({kategori:typeof search.kategori==='string'?search.kategori:undefined}),head:()=>({meta:[{title:'Erkek Koleksiyonu | Maison Calvela'},{name:'description',content:'Erkek için rafine çizgiler ve zahmetsiz bir duruş.'},{property:'og:title',content:'Erkek Koleksiyonu | Maison Calvela'},{property:'og:description',content:'Erkek için rafine çizgiler ve zahmetsiz bir duruş.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Page});
+function Page(){const {kategori}=Route.useSearch();const valid=['tshirt','polo','uzun-kollu'].includes(kategori??'');return <CatalogPage key={kategori} gender="erkek" category={valid?kategori as CategorySlug:undefined} title="Erkek Koleksiyonu" eyebrow="MAISON CALVELA / ERKEK" intro="Erkek için rafine çizgiler ve zahmetsiz bir duruş."/>}

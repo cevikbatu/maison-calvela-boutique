@@ -10,33 +10,92 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ErkekRouteImport } from './routes/erkek'
+import { Route as KadinRouteImport } from './routes/kadin'
+import { Route as KoleksiyonRouteImport } from './routes/koleksiyon'
+import { Route as YeniGelenlerRouteImport } from './routes/yeni-gelenler'
+import { Route as UrunSlugRouteImport } from './routes/urun.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ErkekRoute = ErkekRouteImport.update({
+  id: '/erkek',
+  path: '/erkek',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KadinRoute = KadinRouteImport.update({
+  id: '/kadin',
+  path: '/kadin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KoleksiyonRoute = KoleksiyonRouteImport.update({
+  id: '/koleksiyon',
+  path: '/koleksiyon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const YeniGelenlerRoute = YeniGelenlerRouteImport.update({
+  id: '/yeni-gelenler',
+  path: '/yeni-gelenler',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UrunSlugRoute = UrunSlugRouteImport.update({
+  id: '/urun/$slug',
+  path: '/urun/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/erkek': typeof ErkekRoute
+  '/kadin': typeof KadinRoute
+  '/koleksiyon': typeof KoleksiyonRoute
+  '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/erkek': typeof ErkekRoute
+  '/kadin': typeof KadinRoute
+  '/koleksiyon': typeof KoleksiyonRoute
+  '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/erkek': typeof ErkekRoute
+  '/kadin': typeof KadinRoute
+  '/koleksiyon': typeof KoleksiyonRoute
+  '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/erkek' | '/kadin' | '/koleksiyon' | '/yeni-gelenler' | '/urun/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    '/' | '/erkek' | '/kadin' | '/koleksiyon' | '/yeni-gelenler' | '/urun/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/erkek'
+    | '/kadin'
+    | '/koleksiyon'
+    | '/yeni-gelenler'
+    | '/urun/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ErkekRoute: typeof ErkekRoute
+  KadinRoute: typeof KadinRoute
+  KoleksiyonRoute: typeof KoleksiyonRoute
+  YeniGelenlerRoute: typeof YeniGelenlerRoute
+  UrunSlugRoute: typeof UrunSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +107,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/erkek': {
+      id: '/erkek'
+      path: '/erkek'
+      fullPath: '/erkek'
+      preLoaderRoute: typeof ErkekRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kadin': {
+      id: '/kadin'
+      path: '/kadin'
+      fullPath: '/kadin'
+      preLoaderRoute: typeof KadinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/koleksiyon': {
+      id: '/koleksiyon'
+      path: '/koleksiyon'
+      fullPath: '/koleksiyon'
+      preLoaderRoute: typeof KoleksiyonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/yeni-gelenler': {
+      id: '/yeni-gelenler'
+      path: '/yeni-gelenler'
+      fullPath: '/yeni-gelenler'
+      preLoaderRoute: typeof YeniGelenlerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/urun/$slug': {
+      id: '/urun/$slug'
+      path: '/urun/$slug'
+      fullPath: '/urun/$slug'
+      preLoaderRoute: typeof UrunSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ErkekRoute: ErkekRoute,
+  KadinRoute: KadinRoute,
+  KoleksiyonRoute: KoleksiyonRoute,
+  YeniGelenlerRoute: YeniGelenlerRoute,
+  UrunSlugRoute: UrunSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

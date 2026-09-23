@@ -1,24 +1,39 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState, type FormEvent } from 'react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Brand, Monogram } from '@/components/store/brand';
+import { ProductGrid } from '@/components/store/product-card';
+import { categories, products } from '@/data/catalog';
+import hero from '@/assets/campaign-hero.jpg';
+import lookbook from '@/assets/lookbook.jpg';
+import womenTshirt from '@/assets/women-tshirt.jpg';
+import womenPolo from '@/assets/women-polo.jpg';
+import womenLong from '@/assets/women-longsleeve.jpg';
+import menTshirt from '@/assets/men-tshirt.jpg';
+import menPolo from '@/assets/men-polo.jpg';
+import menLong from '@/assets/men-longsleeve.jpg';
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
-export const Route = createFileRoute("/")({
-  component: Index,
-});
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+export const Route=createFileRoute('/')({head:()=>({meta:[{title:'Maison Calvela | Zamansız Kadın ve Erkek Giyim'},{name:'description',content:'Maison Calvela kadın ve erkek koleksiyonu. Rafine T-shirt, polo yaka ve uzun kollu tasarımlarla günlük zarafeti keşfedin.'},{property:'og:title',content:'Maison Calvela | Zamansız Kadın ve Erkek Giyim'},{property:'og:description',content:'Kadın ve erkek için modern, zamansız ve rafine giyim.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Home});
+const categoryImages=[womenTshirt,womenPolo,womenLong,menTshirt,menPolo,menLong];
+function Home(){
+ const [subscribed,setSubscribed]=useState(false);
+ const [email,setEmail]=useState('');
+ const categoryTiles=[...['kadin','erkek'] as const].flatMap((gender,group)=>categories.map((cat,i)=>({gender,cat,image:categoryImages[group*3+i]})));
+ function subscribe(e:FormEvent){e.preventDefault();if(email.trim())setSubscribed(true)}
+ return <main>
+   <section className="relative h-[min(760px,calc(100svh_-_114px))] min-h-[510px] overflow-hidden bg-panel md:h-[min(740px,calc(100svh_-_126px))]">
+     <img src={hero} alt="Maison Calvela kadın ve erkek yeni sezon tasarımları" width={1920} height={1152} fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[63%_center] md:object-center"/>
+     <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/20 to-transparent md:from-background/45 md:via-transparent"/>
+     <div className="container-wide relative flex h-full flex-col justify-end pb-12 md:justify-center md:pb-0"><div className="max-w-[510px] hero-shadow"><p className="label-caps text-ink-soft">MAISON CALVELA / YENİ SEZON</p><h1 className="editorial-title mt-5 text-[60px] text-foreground sm:text-[76px] md:text-[94px]">Maison<br/><em className="font-normal">Calvela</em></h1><p className="mt-5 max-w-[370px] text-sm leading-relaxed text-foreground md:text-base">Zamansız çizgiler. Kendine özgü bir duruş. Kadın ve erkek için yeniden yorumlanan gündelik zarafet.</p><div className="mt-7 flex flex-wrap gap-2.5"><Button variant="luxury" size="lg" asChild><Link to="/kadin">Kadın Koleksiyonu <ArrowRight/></Link></Button><Button variant="luxuryOutline" size="lg" asChild><Link to="/erkek">Erkek Koleksiyonu</Link></Button></div><Link to="/yeni-gelenler" className="mt-6 inline-flex items-center gap-2 border-b border-foreground pb-1 label-caps">Yeni Gelenler <ArrowUpRight size={14}/></Link></div></div>
+     <div className="absolute bottom-8 right-8 hidden items-center gap-2 label-caps text-foreground lg:flex"><span className="h-px w-9 bg-foreground"/> THE ESSENTIAL EDIT</div>
+   </section>
+   <section className="border-b border-border bg-background py-5"><div className="container-wide grid grid-cols-3 gap-2 text-center label-caps text-muted-foreground"><span>ÖZENLE TASARLANDI</span><span className="border-x border-border">ZAMANSIZ PARÇALAR</span><span>GÜNLÜK ZARAFET</span></div></section>
+   <section className="container-wide py-16 md:py-24"><div className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-11"><div><p className="label-caps text-gold">MAISON CALVELA DÜNYASI</p><h2 className="editorial-title mt-3 text-5xl md:text-7xl">Koleksiyonu Keşfedin</h2></div><Link to="/koleksiyon" className="inline-flex items-center gap-2 border-b border-foreground pb-1 label-caps">TÜM ÜRÜNLER <ArrowUpRight size={14}/></Link></div><div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-3 md:gap-x-5 lg:grid-cols-6">{categoryTiles.map(tile=><Link to={tile.gender==='kadin'?'/kadin':'/erkek'} search={{kategori:tile.cat.slug}} key={`${tile.gender}-${tile.cat.slug}`} className="group min-w-0"><div className="aspect-[3/4] overflow-hidden bg-panel"><img src={tile.image} alt={`${tile.gender==='kadin'?'Kadın':'Erkek'} ${tile.cat.name} koleksiyonu`} loading="lazy" width={500} height={750} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"/></div><p className="mt-3 text-[10px] font-medium uppercase tracking-[.14em] text-gold">{tile.gender==='kadin'?'KADIN':'ERKEK'}</p><div className="mt-1 flex items-center justify-between gap-1"><h3 className="font-display text-xl md:text-2xl">{tile.cat.name}</h3><ArrowUpRight size={16} className="shrink-0"/></div></Link>)}</div></section>
+   <section className="bg-panel py-16 md:py-24"><div className="container-wide"><div className="mb-9 flex flex-wrap items-end justify-between gap-4"><div><p className="label-caps text-gold">YENİ SEZON</p><h2 className="editorial-title mt-3 text-5xl md:text-7xl">Yeni Gelenler</h2></div><Link to="/yeni-gelenler" className="inline-flex items-center gap-2 border-b border-foreground pb-1 label-caps">HEPSİNİ GÖR <ArrowUpRight size={14}/></Link></div><ProductGrid items={products.filter(p=>p.newArrival).slice(0,4)}/></div></section>
+   <section className="container-wide py-16 md:py-24"><div className="mb-9 flex flex-wrap items-end justify-between gap-4"><div><p className="label-caps text-gold">ÖZENLE SEÇİLDİ</p><h2 className="editorial-title mt-3 text-5xl md:text-7xl">Öne Çıkanlar</h2></div><Link to="/koleksiyon" className="inline-flex items-center gap-2 border-b border-foreground pb-1 label-caps">KOLEKSİYON <ArrowUpRight size={14}/></Link></div><ProductGrid items={products.filter(p=>p.featured).slice(2,6)}/></section>
+   <section className="relative min-h-[460px] overflow-hidden md:min-h-[630px]"><img src={lookbook} alt="Maison Calvela kadın ve erkek editorial görünüm" loading="lazy" width={1600} height={1100} className="absolute inset-0 h-full w-full object-cover object-[65%_center] md:object-center"/><div className="absolute inset-0 bg-gradient-to-r from-primary/70 via-primary/20 to-transparent"/><div className="container-wide relative flex min-h-[460px] flex-col justify-center text-primary-foreground md:min-h-[630px]"><p className="label-caps text-gold-light">THE ESSENTIAL EDIT / LOOKBOOK</p><h2 className="editorial-title mt-5 max-w-xl text-6xl md:text-[94px]">Giyimin<br/><em>ötesinde.</em></h2><p className="mt-6 max-w-xs text-sm leading-relaxed">Bir duruşun, bir hissin ve kendin olmanın sessiz ifadesi.</p><Button asChild variant="outline" size="lg" className="mt-8 w-fit border-primary-foreground bg-transparent text-primary-foreground hover:bg-background hover:text-foreground"><Link to="/koleksiyon">Görünümü Keşfet <ArrowRight/></Link></Button></div></section>
+   <section className="container-wide grid gap-10 py-20 md:grid-cols-2 md:items-center md:gap-20 md:py-28"><div><p className="label-caps text-gold">BİR MARKADAN FAZLASI</p><h2 className="editorial-title mt-4 text-5xl md:text-7xl">Her detayda<br/><em>bir hikâye.</em></h2></div><div><p className="max-w-lg text-base leading-[1.85] text-ink-soft">Maison Calvela, sadeliğin gücüne inanır. Her parça; özenle seçilen dokular, dengeli siluetler ve zamana meydan okuyan bir bakış açısıyla tasarlanır. Çünkü gerçek stil, kendiniz gibi hissettiğiniz an başlar.</p><Link to="/hakkimizda" className="mt-7 inline-flex items-center gap-2 border-b border-foreground pb-1 label-caps">HİKÂYEMİZ <ArrowUpRight size={14}/></Link></div></section>
+   <section className="border-t border-border bg-panel py-16 text-center md:py-20"><div className="container-wide"><Brand compact/><h2 className="editorial-title mt-7 text-4xl md:text-5xl">Maison'dan haberler</h2><p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">Yeni koleksiyonlardan ve Maison Calvela dünyasından ilk siz haberdar olun.</p>{subscribed?<p className="mt-8 text-sm text-gold">Teşekkürler. Bu demo sürümde e-posta kaydı yapılmamaktadır.</p>:<form onSubmit={subscribe} className="mx-auto mt-8 flex max-w-md border-b border-foreground"><input value={email} onChange={e=>setEmail(e.target.value)} type="email" required placeholder="E-posta adresiniz" aria-label="E-posta adresiniz" className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"/><Button type="submit" variant="ghost" size="icon" aria-label="Katıl"><ArrowRight/></Button></form>}<p className="mt-3 text-xs text-muted-foreground">Demo alanı; henüz e-posta gönderimi yapılmaz.</p><Monogram className="mt-10 inline-block text-3xl text-gold"/></div></section>
+ </main>;
 }
