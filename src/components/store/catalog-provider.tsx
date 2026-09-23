@@ -6,7 +6,7 @@ import type { Database } from '@/integrations/supabase/types';
 type ProductRow = Database['public']['Tables']['products']['Row'];
 type ImageRow = Database['public']['Tables']['product_images']['Row'];
 const Context = createContext<{products: Product[]; loading: boolean; reload: () => Promise<void>} | null>(null);
-async function resolveImage(url:string):Promise<string>{if(!url.startsWith('catalog/'))return url;const {data,error}=await supabase.storage.from('catalog').download(url.slice(8));if(error||!data)return '';return URL.createObjectURL(data);}
+async function resolveImage(url:string):Promise<string>{if(!url.startsWith('catalog/'))return url;const {data,error}=await supabase.storage.from('catalog').download(url.slice(8));if(error||!data)return '';return new Promise<string>(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(typeof reader.result==='string'?reader.result:'');reader.onerror=()=>resolve('');reader.readAsDataURL(data);});}
 function adapt(row:ProductRow, categories:Record<string,CategorySlug>, images:ImageRow[]): Product {
   const rawColors=Array.isArray(row.colors)?row.colors:[];
   const colors=rawColors.filter((v):v is {name:string;token:string}=>typeof v==='object'&&v!==null&&!Array.isArray(v)&&typeof v['name']==='string'&&typeof v['token']==='string');
