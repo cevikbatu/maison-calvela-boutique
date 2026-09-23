@@ -26,7 +26,9 @@ import { Route as KvkkRouteImport } from './routes/kvkk'
 import { Route as MesafeliSatisRouteImport } from './routes/mesafeli-satis'
 import { Route as OnBilgilendirmeRouteImport } from './routes/on-bilgilendirme'
 import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SifreYenileRouteImport } from './routes/sifre-yenile'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TeslimatRouteImport } from './routes/teslimat'
 import { Route as TicariIletiRouteImport } from './routes/ticari-ileti'
 import { Route as YeniGelenlerRouteImport } from './routes/yeni-gelenler'
@@ -118,9 +120,19 @@ const ProfilRoute = ProfilRouteImport.update({
   path: '/profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SifreYenileRoute = SifreYenileRouteImport.update({
   id: '/sifre-yenile',
   path: '/sifre-yenile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TeslimatRoute = TeslimatRouteImport.update({
@@ -167,7 +179,9 @@ export interface FileRoutesByFullPath {
   '/mesafeli-satis': typeof MesafeliSatisRoute
   '/on-bilgilendirme': typeof OnBilgilendirmeRoute
   '/profil': typeof ProfilRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sifre-yenile': typeof SifreYenileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teslimat': typeof TeslimatRoute
   '/ticari-ileti': typeof TicariIletiRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
@@ -192,7 +206,9 @@ export interface FileRoutesByTo {
   '/mesafeli-satis': typeof MesafeliSatisRoute
   '/on-bilgilendirme': typeof OnBilgilendirmeRoute
   '/profil': typeof ProfilRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sifre-yenile': typeof SifreYenileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teslimat': typeof TeslimatRoute
   '/ticari-ileti': typeof TicariIletiRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
@@ -218,7 +234,9 @@ export interface FileRoutesById {
   '/mesafeli-satis': typeof MesafeliSatisRoute
   '/on-bilgilendirme': typeof OnBilgilendirmeRoute
   '/profil': typeof ProfilRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sifre-yenile': typeof SifreYenileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teslimat': typeof TeslimatRoute
   '/ticari-ileti': typeof TicariIletiRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
@@ -245,7 +263,9 @@ export interface FileRouteTypes {
     | '/mesafeli-satis'
     | '/on-bilgilendirme'
     | '/profil'
+    | '/robots.txt'
     | '/sifre-yenile'
+    | '/sitemap.xml'
     | '/teslimat'
     | '/ticari-ileti'
     | '/yeni-gelenler'
@@ -270,7 +290,9 @@ export interface FileRouteTypes {
     | '/mesafeli-satis'
     | '/on-bilgilendirme'
     | '/profil'
+    | '/robots.txt'
     | '/sifre-yenile'
+    | '/sitemap.xml'
     | '/teslimat'
     | '/ticari-ileti'
     | '/yeni-gelenler'
@@ -295,7 +317,9 @@ export interface FileRouteTypes {
     | '/mesafeli-satis'
     | '/on-bilgilendirme'
     | '/profil'
+    | '/robots.txt'
     | '/sifre-yenile'
+    | '/sitemap.xml'
     | '/teslimat'
     | '/ticari-ileti'
     | '/yeni-gelenler'
@@ -321,7 +345,9 @@ export interface RootRouteChildren {
   MesafeliSatisRoute: typeof MesafeliSatisRoute
   OnBilgilendirmeRoute: typeof OnBilgilendirmeRoute
   ProfilRoute: typeof ProfilRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SifreYenileRoute: typeof SifreYenileRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeslimatRoute: typeof TeslimatRoute
   TicariIletiRoute: typeof TicariIletiRoute
   YeniGelenlerRoute: typeof YeniGelenlerRoute
@@ -450,11 +476,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sifre-yenile': {
       id: '/sifre-yenile'
       path: '/sifre-yenile'
       fullPath: '/sifre-yenile'
       preLoaderRoute: typeof SifreYenileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/teslimat': {
@@ -513,7 +553,9 @@ const rootRouteChildren: RootRouteChildren = {
   MesafeliSatisRoute: MesafeliSatisRoute,
   OnBilgilendirmeRoute: OnBilgilendirmeRoute,
   ProfilRoute: ProfilRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SifreYenileRoute: SifreYenileRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeslimatRoute: TeslimatRoute,
   TicariIletiRoute: TicariIletiRoute,
   YeniGelenlerRoute: YeniGelenlerRoute,
