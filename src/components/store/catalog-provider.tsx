@@ -6,7 +6,7 @@ import { parseMeasurements } from '@/lib/measurements';
 
 type ProductRow = Database['public']['Tables']['products']['Row'];
 type ImageRow = Database['public']['Tables']['product_images']['Row'];
-const Context = createContext<{products: Product[]; loading: boolean; reload: () => Promise<void>} | null>(null);
+const Context = createContext<{products: Product[]; loading: boolean; error: boolean; reload: () => Promise<void>} | null>(null);
 async function resolveImage(url:string):Promise<string>{if(!url.startsWith('catalog/'))return url;const {data,error}=await supabase.storage.from('catalog').download(url.slice(8));if(error||!data)return '';return new Promise<string>(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(typeof reader.result==='string'?reader.result:'');reader.onerror=()=>resolve('');reader.readAsDataURL(data);});}
 function adapt(row:Pick<ProductRow,'id'|'slug'|'title'|'gender'|'category_id'|'description'|'fabric'|'production_note'|'model_height'|'model_size'|'size_measurements'|'sizes'|'colors'|'published'|'featured'|'new_arrival'>, categories:Record<string,CategorySlug>, images:ImageRow[]): Product {
   const rawColors=Array.isArray(row.colors)?row.colors:[];
@@ -16,12 +16,23 @@ function adapt(row:Pick<ProductRow,'id'|'slug'|'title'|'gender'|'category_id'|'d
 export function CatalogProvider({children}:{children:ReactNode}) {
   const [products,setProducts]=useState<Product[]>([]);
   const [loading,setLoading]=useState(true);
+  const [error,setError]=useState(false);
   async function reload(){
+    setLoading(true);
+    setError(false);
+    try {
     const [p,c,i]=await Promise.all([supabase.from('products').select('id,slug,title,gender,category_id,description,fabric,production_note,model_height,model_size,size_measurements,sizes,colors,published,featured,new_arrival,created_at,updated_at').eq('published',true).order('created_at'),supabase.from('categories').select('id,slug'),supabase.from('product_images').select('id,product_id,url,alt,sort_order,created_at')]);
-    if(!p.error&&!c.error&&!i.error){const resolved=await Promise.all((i.data??[]).map(async image=>({...image,url:await resolveImage(image.url)})));setProducts((p.data??[]).map(row=>adapt(row,Object.fromEntries((c.data??[]).map(cat=>[cat.id,cat.slug as CategorySlug])),resolved)));} else console.error('Koleksiyon yüklenemedi',p.error??c.error??i.error);
-    setLoading(false);
+      if(p.error||c.error||i.error) throw p.error??c.error??i.error;
+      const resolved=await Promise.all((i.data??[]).map(async image=>({...image,url:await resolveImage(image.url)})));
+      setProducts((p.data??[]).map(row=>adapt(row,Object.fromEntries((c.data??[]).map(cat=>[cat.id,cat.slug as CategorySlug])),resolved)));
+    } catch (error) {
+      console.error('Koleksiyon yüklenemedi',error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }
   useEffect(()=>{void reload()},[]);
-  return <Context.Provider value={{products,loading,reload}}>{children}</Context.Provider>;
+  return <Context.Provider value={{products,loading,error,reload}}>{children}</Context.Provider>;
 }
 export function useCatalog(){const value=useContext(Context);if(!value)throw new Error('CatalogProvider is missing');return value;}
