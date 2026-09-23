@@ -5,7 +5,7 @@ const canonicalSite = site && /^https:\/\/(?!.*(?:preview|localhost|127\.0\.0\.1
 export const productionSite = canonicalSite;
 
 type Result = {head:{meta:Array<Record<string,string>>;links?:Array<{rel:string;href:string}>;scripts?:Array<{type:string;children:string}>}};
-export const productMeta = createServerFn({method:'GET'}).inputValidator((slug:string)=>slug).handler(async ({data:slug}):Promise<Result>=>{
+export const productMeta = createServerFn({method:'GET'}).validator((slug:string)=>slug).handler(async ({data:slug}):Promise<Result>=>{
   const base=process.env['SUPABASE_URL'];const key=process.env['SUPABASE_PUBLISHABLE_KEY'];
   if(!base||!key)return {head:{meta:[{title:'Ürün | Maison Calvela'},{name:'description',content:'Maison Calvela koleksiyonu.'},{property:'og:title',content:'Ürün | Maison Calvela'},{property:'og:description',content:'Maison Calvela koleksiyonu.'},{property:'og:type',content:'product'},{name:'twitter:card',content:'summary_large_image'}]}};
   const headers={apikey:key};
