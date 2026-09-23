@@ -10,7 +10,7 @@ async function resolveImage(url:string):Promise<string>{if(!url.startsWith('cata
 function adapt(row:ProductRow, categories:Record<string,CategorySlug>, images:ImageRow[]): Product {
   const rawColors=Array.isArray(row.colors)?row.colors:[];
   const colors=rawColors.filter((v):v is {name:string;token:string}=>typeof v==='object'&&v!==null&&!Array.isArray(v)&&typeof v['name']==='string'&&typeof v['token']==='string');
-  return {id:row.id,slug:row.slug,name:row.title,gender:row.gender as Gender,category:categories[row.category_id]??'tshirt',price:0,description:row.description,fabric:row.fabric,fit:row.fit,care:row.care,colors,sizes:row.sizes as Size[],images:images.filter(i=>i.product_id===row.id).sort((a,b)=>a.sort_order-b.sort_order).map(i=>catalogImage(i.url)),featured:row.featured,newArrival:row.new_arrival,visible:row.published,collectionIds:[]};
+  return {id:row.id,slug:row.slug,name:row.title,gender:row.gender as Gender,category:categories[row.category_id]??'tshirt',price:0,description:row.description,fabric:row.fabric,fit:row.fit,care:row.care,colors,sizes:row.sizes as Size[],images:images.filter(i=>i.product_id===row.id).sort((a,b)=>a.sort_order-b.sort_order).map(i=>i.url),featured:row.featured,newArrival:row.new_arrival,visible:row.published,collectionIds:[]};
 }
 export function CatalogProvider({children}:{children:ReactNode}) {
   const [products,setProducts]=useState<Product[]>([]);
