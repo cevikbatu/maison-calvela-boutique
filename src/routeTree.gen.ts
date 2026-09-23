@@ -22,6 +22,7 @@ import { Route as KoleksiyonRouteImport } from './routes/koleksiyon'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as TeslimatRouteImport } from './routes/teslimat'
 import { Route as YeniGelenlerRouteImport } from './routes/yeni-gelenler'
+import { Route as YonetimRouteImport } from './routes/yonetim'
 import { Route as UrunSlugRouteImport } from './routes/urun.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +90,11 @@ const YeniGelenlerRoute = YeniGelenlerRouteImport.update({
   path: '/yeni-gelenler',
   getParentRoute: () => rootRouteImport,
 } as any)
+const YonetimRoute = YonetimRouteImport.update({
+  id: '/yonetim',
+  path: '/yonetim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UrunSlugRoute = UrunSlugRouteImport.update({
   id: '/urun/$slug',
   path: '/urun/$slug',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/profil': typeof ProfilRoute
   '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRoutesByTo {
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/profil': typeof ProfilRoute
   '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRoutesById {
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/profil': typeof ProfilRoute
   '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
+  '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
 }
 export interface FileRouteTypes {
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/teslimat'
     | '/yeni-gelenler'
+    | '/yonetim'
     | '/urun/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/teslimat'
     | '/yeni-gelenler'
+    | '/yonetim'
     | '/urun/$slug'
   id:
     | '__root__'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/teslimat'
     | '/yeni-gelenler'
+    | '/yonetim'
     | '/urun/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   ProfilRoute: typeof ProfilRoute
   TeslimatRoute: typeof TeslimatRoute
   YeniGelenlerRoute: typeof YeniGelenlerRoute
+  YonetimRoute: typeof YonetimRoute
   UrunSlugRoute: typeof UrunSlugRoute
 }
 
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof YeniGelenlerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/yonetim': {
+      id: '/yonetim'
+      path: '/yonetim'
+      fullPath: '/yonetim'
+      preLoaderRoute: typeof YonetimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/urun/$slug': {
       id: '/urun/$slug'
       path: '/urun/$slug'
@@ -329,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfilRoute: ProfilRoute,
   TeslimatRoute: TeslimatRoute,
   YeniGelenlerRoute: YeniGelenlerRoute,
+  YonetimRoute: YonetimRoute,
   UrunSlugRoute: UrunSlugRoute,
 }
 export const routeTree = rootRouteImport
