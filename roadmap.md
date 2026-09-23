@@ -1,0 +1,4 @@
+- [ ] Build Turkish luxury storefront, women/men catalog, discovery and product detail.
+- [ ] Make search, filters, favorites, quick view and demo cart functional.
+- [ ] Prepare typed commerce data models without exposing an unsecured admin area.
+- [ ] Check desktop/mobile presentation and interaction.
