@@ -19,19 +19,15 @@ export const getOwnerSetupStatus = createServerFn({ method: 'GET' }).handler(asy
 
 /** Invitation emails go only to the fixed owner address, never caller input. No public signups. */
 export const requestOwnerInvitation = createServerFn({ method: 'POST' }).handler(async () => {
+  const { getOwnerBootstrapOrigin } = await import('./owner-bootstrap-origins.server');
+  const origin = getOwnerBootstrapOrigin(getRequestHeader('origin'));
+  if (!origin) return { ok: false };
+
   const admin = await ownerClient();
   const { count, error } = await admin.from('user_roles').select('id', { count: 'exact', head: true }).eq('role', 'admin');
   if (error || count !== 0) return { ok: false };
 
-  // Only known same-site origins may receive invitation tokens. Arbitrary Origin headers
-  // and caller-supplied redirect URLs are deliberately ignored.
-  const origin = getRequestHeader('origin');
-  // Only the immutable project preview hostname is permitted. A forged Origin
-  // cannot divert an invitation to a user-owned *.lovable.app hostname.
-  const previewHost = 'id-preview--e230c0b3-cb3f-43f3-a6c8-ae3b53811a17.lovable.app';
-  const isLocal = origin === 'http://localhost:8080';
-  const isPreview = origin === `https://${previewHost}`;
-  if (!isLocal && !isPreview) return { ok: false };
+  // Redirect only to the normalized, explicitly allowed origin; never caller-supplied paths.
   const redirectTo = `${origin}/yonetim`;
 
   // The provider rejects repeat invites for existing users. In that case the
