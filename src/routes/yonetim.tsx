@@ -9,7 +9,7 @@ import { AdminDashboard } from '@/components/admin/dashboard';
 
 type State='checking'|'login'|'denied'|'authorized';
 export const Route = createFileRoute('/yonetim')({
-  head:()=>({meta:[{title:'Özel Yönetim | Maison Calvela'},{name:'robots',content:'noindex, nofollow'}]}),component:Admin,
+  head:()=>({meta:[{title:'Özel Yönetim | Maison Calvela'},{name:'description',content:'Maison Calvela özel yönetim alanı.'},{property:'og:title',content:'Özel Yönetim | Maison Calvela'},{property:'og:description',content:'Maison Calvela özel yönetim alanı.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'},{name:'robots',content:'noindex, nofollow'}]}),component:Admin,
 });
 function Admin(){
   const [state,setState]=useState<State>('checking');

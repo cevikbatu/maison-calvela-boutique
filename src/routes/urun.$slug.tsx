@@ -7,7 +7,7 @@ import { useCatalog } from '@/components/store/catalog-provider';
 import { supabase } from '@/integrations/supabase/client';
 import { type Size } from '@/data/catalog';
 import { useStore } from '@/components/store/store-provider';
-export const Route=createFileRoute('/urun/$slug')({head:()=>({meta:[{title:'Ürün | Maison Calvela'},{name:'robots',content:'index, follow'}]}),component:ProductDetail});
+export const Route=createFileRoute('/urun/$slug')({head:()=>({meta:[{title:'Ürün | Maison Calvela'},{name:'description',content:'Maison Calvela kadın ve erkek koleksiyonunun özenle tasarlanmış parçaları.'},{property:'og:title',content:'Ürün | Maison Calvela'},{property:'og:description',content:'Maison Calvela kadın ve erkek koleksiyonunun özenle tasarlanmış parçaları.'},{property:'og:type',content:'product'},{name:'twitter:card',content:'summary_large_image'},{name:'robots',content:'index, follow'}]}),component:ProductDetail});
 function ProductDetail(){const {slug}=Route.useParams();const {products,loading}=useCatalog();const p=products.find(item=>item.slug===slug);const {favorites,toggleFavorite,addToCart}=useStore();const [size,setSize]=useState<Size|null>(null);const [color,setColor]=useState('');
 useEffect(()=>{if(p?.colors[0]?.name)setColor(p.colors[0].name)},[p?.id]);const [quantity,setQuantity]=useState(1);const [image,setImage]=useState(0);const [error,setError]=useState(false);useEffect(()=>{if(!p)return;void supabase.from('product_views').insert({product_id:p.id});},[p?.id]);
 if(loading)return <main className="container-wide py-28 text-center">Ürün yükleniyor…</main>;
