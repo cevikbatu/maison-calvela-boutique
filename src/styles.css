@@ -68,6 +68,7 @@
 @utility fine-rule { border-color: var(--border); }
 @utility image-soft { background-color: var(--panel); }
 @utility hero-shadow { text-shadow: 0 1px 28px oklch(0.24 0.01 75 / .12); }
+.monogram-icon { background-color: currentColor; mask: url('/monogram.svg') center / contain no-repeat; -webkit-mask: url('/monogram.svg') center / contain no-repeat; }
 @media (min-width: 768px) { .container-wide { width: min(100% - 96px, 1440px); } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 .swatch-ivory { background: oklch(0.95 0.009 82); }
