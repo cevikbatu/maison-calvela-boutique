@@ -70,3 +70,9 @@
 @utility hero-shadow { text-shadow: 0 1px 28px oklch(0.24 0.01 75 / .12); }
 @media (min-width: 768px) { .container-wide { width: min(100% - 96px, 1440px); } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+.swatch-ivory { background: oklch(0.95 0.009 82); }
+.swatch-black { background: oklch(0.18 0.006 72); }
+.swatch-olive { background: oklch(0.40 0.028 114); }
+.swatch-taupe { background: oklch(0.68 0.026 75); }
+.swatch-charcoal { background: oklch(0.36 0.007 75); }
+.swatch-stone { background: oklch(0.80 0.008 88); }
