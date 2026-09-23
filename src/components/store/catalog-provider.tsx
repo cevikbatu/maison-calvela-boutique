@@ -16,7 +16,7 @@ export function CatalogProvider({children}:{children:ReactNode}) {
   const [products,setProducts]=useState<Product[]>([]);
   const [loading,setLoading]=useState(true);
   async function reload(){
-    const [p,c,i]=await Promise.all([supabase.from('products').select('*').eq('published',true).order('created_at'),supabase.from('categories').select('id,slug'),supabase.from('product_images').select('*')]);
+    const [p,c,i]=await Promise.all([supabase.from('products').select('id,slug,title,gender,category_id,description,fabric,fit,care,sizes,colors,published,featured,new_arrival,created_at,updated_at').eq('published',true).order('created_at'),supabase.from('categories').select('id,slug'),supabase.from('product_images').select('id,product_id,url,alt,sort_order,created_at')]);
     if(!p.error&&!c.error&&!i.error){const resolved=await Promise.all((i.data??[]).map(async image=>({...image,url:await resolveImage(image.url)})));setProducts((p.data??[]).map(row=>adapt(row,Object.fromEntries((c.data??[]).map(cat=>[cat.id,cat.slug as CategorySlug])),resolved)));} else console.error('Koleksiyon yüklenemedi',p.error??c.error??i.error);
     setLoading(false);
   }
