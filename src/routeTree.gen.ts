@@ -20,6 +20,7 @@ import { Route as IletisimRouteImport } from './routes/iletisim'
 import { Route as KadinRouteImport } from './routes/kadin'
 import { Route as KoleksiyonRouteImport } from './routes/koleksiyon'
 import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as SifreYenileRouteImport } from './routes/sifre-yenile'
 import { Route as TeslimatRouteImport } from './routes/teslimat'
 import { Route as YeniGelenlerRouteImport } from './routes/yeni-gelenler'
 import { Route as YonetimRouteImport } from './routes/yonetim'
@@ -80,6 +81,11 @@ const ProfilRoute = ProfilRouteImport.update({
   path: '/profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SifreYenileRoute = SifreYenileRouteImport.update({
+  id: '/sifre-yenile',
+  path: '/sifre-yenile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeslimatRoute = TeslimatRouteImport.update({
   id: '/teslimat',
   path: '/teslimat',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
   '/profil': typeof ProfilRoute
+  '/sifre-yenile': typeof SifreYenileRoute
   '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
   '/yonetim': typeof YonetimRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
   '/profil': typeof ProfilRoute
+  '/sifre-yenile': typeof SifreYenileRoute
   '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
   '/yonetim': typeof YonetimRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
   '/profil': typeof ProfilRoute
+  '/sifre-yenile': typeof SifreYenileRoute
   '/teslimat': typeof TeslimatRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
   '/yonetim': typeof YonetimRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/kadin'
     | '/koleksiyon'
     | '/profil'
+    | '/sifre-yenile'
     | '/teslimat'
     | '/yeni-gelenler'
     | '/yonetim'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/kadin'
     | '/koleksiyon'
     | '/profil'
+    | '/sifre-yenile'
     | '/teslimat'
     | '/yeni-gelenler'
     | '/yonetim'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/kadin'
     | '/koleksiyon'
     | '/profil'
+    | '/sifre-yenile'
     | '/teslimat'
     | '/yeni-gelenler'
     | '/yonetim'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   KadinRoute: typeof KadinRoute
   KoleksiyonRoute: typeof KoleksiyonRoute
   ProfilRoute: typeof ProfilRoute
+  SifreYenileRoute: typeof SifreYenileRoute
   TeslimatRoute: typeof TeslimatRoute
   YeniGelenlerRoute: typeof YeniGelenlerRoute
   YonetimRoute: typeof YonetimRoute
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sifre-yenile': {
+      id: '/sifre-yenile'
+      path: '/sifre-yenile'
+      fullPath: '/sifre-yenile'
+      preLoaderRoute: typeof SifreYenileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teslimat': {
       id: '/teslimat'
       path: '/teslimat'
@@ -347,6 +367,7 @@ const rootRouteChildren: RootRouteChildren = {
   KadinRoute: KadinRoute,
   KoleksiyonRoute: KoleksiyonRoute,
   ProfilRoute: ProfilRoute,
+  SifreYenileRoute: SifreYenileRoute,
   TeslimatRoute: TeslimatRoute,
   YeniGelenlerRoute: YeniGelenlerRoute,
   YonetimRoute: YonetimRoute,
