@@ -21,7 +21,7 @@ export function StoreProvider({children}:{children:ReactNode}){
   const active=useRef<{id:string;cartId:string|null;variants:Map<string,string>;itemIds:Map<string,string>}|null>(null);
   const loaded=useRef(false);const generation=useRef(0);const queue=useRef(Promise.resolve());
   const firstFavoritesSave=useRef(true);const firstCartSave=useRef(true);
-  function persist(task:()=>Promise<void>){queue.current=queue.current.then(task).catch(()=>{setSyncError('Hesap verileriniz eşitlenemedi. Lütfen sayfayı yenileyip yeniden deneyin.');});}
+  function persist(task:()=>Promise<void>){const account=active.current;queue.current=queue.current.then(async()=>{if(account && active.current===account)await task();}).catch(()=>{setSyncError('Hesap verileriniz eşitlenemedi. Lütfen sayfayı yenileyip yeniden deneyin.');});}
   useEffect(()=>{
     const guest=guestData();setFavorites(guest.favorites);setCart(guest.cart);loaded.current=true;
     async function load(u:User|null){const stamp=++generation.current;
