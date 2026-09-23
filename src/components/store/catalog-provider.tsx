@@ -6,7 +6,8 @@ import type { Database } from '@/integrations/supabase/types';
 type ProductRow = Database['public']['Tables']['products']['Row'];
 type ImageRow = Database['public']['Tables']['product_images']['Row'];
 const Context = createContext<{products: Product[]; loading: boolean; reload: () => Promise<void>} | null>(null);
-export function catalogImage(url:string) { return url.startsWith('catalog/') ? `${import.meta.env['VITE_SUPABASE_URL']}/storage/v1/object/authenticated/${url}` : url; }
+export function catalogImage(url:string) { return url; }
+async function resolveImage(url:string):Promise<string>{if(!url.startsWith('catalog/'))return url;const {data,error}=await supabase.storage.from('catalog').download(url.slice(8));if(error||!data)return '';return URL.createObjectURL(data);}
 function adapt(row:ProductRow, categories:Record<string,CategorySlug>, images:ImageRow[]): Product {
   const rawColors=Array.isArray(row.colors)?row.colors:[];
   const colors=rawColors.filter((v):v is {name:string;token:string}=>typeof v==='object'&&v!==null&&!Array.isArray(v)&&typeof v['name']==='string'&&typeof v['token']==='string');
@@ -17,7 +18,7 @@ export function CatalogProvider({children}:{children:ReactNode}) {
   const [loading,setLoading]=useState(true);
   async function reload(){
     const [p,c,i]=await Promise.all([supabase.from('products').select('*').eq('published',true).order('created_at'),supabase.from('categories').select('id,slug'),supabase.from('product_images').select('*')]);
-    if(!p.error&&!c.error&&!i.error){setProducts((p.data??[]).map(row=>adapt(row,Object.fromEntries((c.data??[]).map(cat=>[cat.id,cat.slug as CategorySlug])),i.data??[])));} else console.error('Koleksiyon yüklenemedi',p.error??c.error??i.error);
+    if(!p.error&&!c.error&&!i.error){const resolved=await Promise.all((i.data??[]).map(async image=>({...image,url:await resolveImage(image.url)})));setProducts((p.data??[]).map(row=>adapt(row,Object.fromEntries((c.data??[]).map(cat=>[cat.id,cat.slug as CategorySlug])),resolved)));} else console.error('Koleksiyon yüklenemedi',p.error??c.error??i.error);
     setLoading(false);
   }
   useEffect(()=>{void reload()},[]);
