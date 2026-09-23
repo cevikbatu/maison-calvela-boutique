@@ -18,4 +18,7 @@
 - [x] Verify RLS, auth, admin isolation, public prices, routes, and desktop/mobile rendering; keep preview unpublished.
 - [x] Run the available security scan/linter and finish verified release checks; final commit is platform-managed.
 
+- [x] Replace free-text fit and removed product fields with a numeric, per-product size/measurement grid in admin.
+- [x] Show saved measurements and model information on product pages without empty fields; verify desktop and iPhone.
+
 - [ ] Sales launch prerequisites (owner-provided): real company identity/contact fields and legal review, confirmed product specifications/photos, and a production domain before indexing. Payment remains disabled.
