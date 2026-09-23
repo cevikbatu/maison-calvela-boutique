@@ -10,3 +10,9 @@
 - [x] Complete final verification and prepare the finished result (commit is managed by the platform).
 - [x] Add invitation-only first-owner activation with verified email, chosen password, and atomic one-time role grant.
 - [x] Verify locked/login/invite states on desktop and mobile; verified-password/authorized transition awaits owner opening the emailed link.
+
+- [ ] Add editable product fabric/fit/size information, size guide, and draft service promises without invented specifications.
+- [ ] Enable confirmed customer accounts, reset flow, private addresses/preferences and persistent guest-to-account favorites/cart.
+- [ ] Add packaging concept, honest Maison Notes presentation, and professional draft legal pages.
+- [ ] Add product SEO, canonical/sitemap production configuration, and preview noindex.
+- [ ] Verify RLS, auth, admin isolation, public prices, routes, and desktop/mobile rendering; keep preview unpublished.

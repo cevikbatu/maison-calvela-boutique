@@ -11,16 +11,26 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AramaRouteImport } from './routes/arama'
+import { Route as CerezRouteImport } from './routes/cerez'
 import { Route as ErkekRouteImport } from './routes/erkek'
 import { Route as FavorilerRouteImport } from './routes/favoriler'
 import { Route as GizlilikRouteImport } from './routes/gizlilik'
 import { Route as HakkimizdaRouteImport } from './routes/hakkimizda'
 import { Route as IadeRouteImport } from './routes/iade'
+import { Route as IadeCaymaDegisimRouteImport } from './routes/iade-cayma-degisim'
 import { Route as IletisimRouteImport } from './routes/iletisim'
+import { Route as IletisimSaticiRouteImport } from './routes/iletisim-satici'
 import { Route as KadinRouteImport } from './routes/kadin'
 import { Route as KoleksiyonRouteImport } from './routes/koleksiyon'
+import { Route as KvkkRouteImport } from './routes/kvkk'
+import { Route as MesafeliSatisRouteImport } from './routes/mesafeli-satis'
+import { Route as OnBilgilendirmeRouteImport } from './routes/on-bilgilendirme'
 import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SifreYenileRouteImport } from './routes/sifre-yenile'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TeslimatRouteImport } from './routes/teslimat'
+import { Route as TicariIletiRouteImport } from './routes/ticari-ileti'
 import { Route as YeniGelenlerRouteImport } from './routes/yeni-gelenler'
 import { Route as YonetimRouteImport } from './routes/yonetim'
 import { Route as UrunSlugRouteImport } from './routes/urun.$slug'
@@ -33,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
 const AramaRoute = AramaRouteImport.update({
   id: '/arama',
   path: '/arama',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CerezRoute = CerezRouteImport.update({
+  id: '/cerez',
+  path: '/cerez',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ErkekRoute = ErkekRouteImport.update({
@@ -60,9 +75,19 @@ const IadeRoute = IadeRouteImport.update({
   path: '/iade',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IadeCaymaDegisimRoute = IadeCaymaDegisimRouteImport.update({
+  id: '/iade-cayma-degisim',
+  path: '/iade-cayma-degisim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IletisimRoute = IletisimRouteImport.update({
   id: '/iletisim',
   path: '/iletisim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IletisimSaticiRoute = IletisimSaticiRouteImport.update({
+  id: '/iletisim-satici',
+  path: '/iletisim-satici',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KadinRoute = KadinRouteImport.update({
@@ -75,14 +100,49 @@ const KoleksiyonRoute = KoleksiyonRouteImport.update({
   path: '/koleksiyon',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KvkkRoute = KvkkRouteImport.update({
+  id: '/kvkk',
+  path: '/kvkk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MesafeliSatisRoute = MesafeliSatisRouteImport.update({
+  id: '/mesafeli-satis',
+  path: '/mesafeli-satis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnBilgilendirmeRoute = OnBilgilendirmeRouteImport.update({
+  id: '/on-bilgilendirme',
+  path: '/on-bilgilendirme',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilRoute = ProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SifreYenileRoute = SifreYenileRouteImport.update({
+  id: '/sifre-yenile',
+  path: '/sifre-yenile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeslimatRoute = TeslimatRouteImport.update({
   id: '/teslimat',
   path: '/teslimat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicariIletiRoute = TicariIletiRouteImport.update({
+  id: '/ticari-ileti',
+  path: '/ticari-ileti',
   getParentRoute: () => rootRouteImport,
 } as any)
 const YeniGelenlerRoute = YeniGelenlerRouteImport.update({
@@ -104,16 +164,26 @@ const UrunSlugRoute = UrunSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/arama': typeof AramaRoute
+  '/cerez': typeof CerezRoute
   '/erkek': typeof ErkekRoute
   '/favoriler': typeof FavorilerRoute
   '/gizlilik': typeof GizlilikRoute
   '/hakkimizda': typeof HakkimizdaRoute
   '/iade': typeof IadeRoute
+  '/iade-cayma-degisim': typeof IadeCaymaDegisimRoute
   '/iletisim': typeof IletisimRoute
+  '/iletisim-satici': typeof IletisimSaticiRoute
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
+  '/kvkk': typeof KvkkRoute
+  '/mesafeli-satis': typeof MesafeliSatisRoute
+  '/on-bilgilendirme': typeof OnBilgilendirmeRoute
   '/profil': typeof ProfilRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sifre-yenile': typeof SifreYenileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teslimat': typeof TeslimatRoute
+  '/ticari-ileti': typeof TicariIletiRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
   '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
@@ -121,16 +191,26 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/arama': typeof AramaRoute
+  '/cerez': typeof CerezRoute
   '/erkek': typeof ErkekRoute
   '/favoriler': typeof FavorilerRoute
   '/gizlilik': typeof GizlilikRoute
   '/hakkimizda': typeof HakkimizdaRoute
   '/iade': typeof IadeRoute
+  '/iade-cayma-degisim': typeof IadeCaymaDegisimRoute
   '/iletisim': typeof IletisimRoute
+  '/iletisim-satici': typeof IletisimSaticiRoute
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
+  '/kvkk': typeof KvkkRoute
+  '/mesafeli-satis': typeof MesafeliSatisRoute
+  '/on-bilgilendirme': typeof OnBilgilendirmeRoute
   '/profil': typeof ProfilRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sifre-yenile': typeof SifreYenileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teslimat': typeof TeslimatRoute
+  '/ticari-ileti': typeof TicariIletiRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
   '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
@@ -139,16 +219,26 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/arama': typeof AramaRoute
+  '/cerez': typeof CerezRoute
   '/erkek': typeof ErkekRoute
   '/favoriler': typeof FavorilerRoute
   '/gizlilik': typeof GizlilikRoute
   '/hakkimizda': typeof HakkimizdaRoute
   '/iade': typeof IadeRoute
+  '/iade-cayma-degisim': typeof IadeCaymaDegisimRoute
   '/iletisim': typeof IletisimRoute
+  '/iletisim-satici': typeof IletisimSaticiRoute
   '/kadin': typeof KadinRoute
   '/koleksiyon': typeof KoleksiyonRoute
+  '/kvkk': typeof KvkkRoute
+  '/mesafeli-satis': typeof MesafeliSatisRoute
+  '/on-bilgilendirme': typeof OnBilgilendirmeRoute
   '/profil': typeof ProfilRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sifre-yenile': typeof SifreYenileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teslimat': typeof TeslimatRoute
+  '/ticari-ileti': typeof TicariIletiRoute
   '/yeni-gelenler': typeof YeniGelenlerRoute
   '/yonetim': typeof YonetimRoute
   '/urun/$slug': typeof UrunSlugRoute
@@ -158,16 +248,26 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/arama'
+    | '/cerez'
     | '/erkek'
     | '/favoriler'
     | '/gizlilik'
     | '/hakkimizda'
     | '/iade'
+    | '/iade-cayma-degisim'
     | '/iletisim'
+    | '/iletisim-satici'
     | '/kadin'
     | '/koleksiyon'
+    | '/kvkk'
+    | '/mesafeli-satis'
+    | '/on-bilgilendirme'
     | '/profil'
+    | '/robots.txt'
+    | '/sifre-yenile'
+    | '/sitemap.xml'
     | '/teslimat'
+    | '/ticari-ileti'
     | '/yeni-gelenler'
     | '/yonetim'
     | '/urun/$slug'
@@ -175,16 +275,26 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/arama'
+    | '/cerez'
     | '/erkek'
     | '/favoriler'
     | '/gizlilik'
     | '/hakkimizda'
     | '/iade'
+    | '/iade-cayma-degisim'
     | '/iletisim'
+    | '/iletisim-satici'
     | '/kadin'
     | '/koleksiyon'
+    | '/kvkk'
+    | '/mesafeli-satis'
+    | '/on-bilgilendirme'
     | '/profil'
+    | '/robots.txt'
+    | '/sifre-yenile'
+    | '/sitemap.xml'
     | '/teslimat'
+    | '/ticari-ileti'
     | '/yeni-gelenler'
     | '/yonetim'
     | '/urun/$slug'
@@ -192,16 +302,26 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/arama'
+    | '/cerez'
     | '/erkek'
     | '/favoriler'
     | '/gizlilik'
     | '/hakkimizda'
     | '/iade'
+    | '/iade-cayma-degisim'
     | '/iletisim'
+    | '/iletisim-satici'
     | '/kadin'
     | '/koleksiyon'
+    | '/kvkk'
+    | '/mesafeli-satis'
+    | '/on-bilgilendirme'
     | '/profil'
+    | '/robots.txt'
+    | '/sifre-yenile'
+    | '/sitemap.xml'
     | '/teslimat'
+    | '/ticari-ileti'
     | '/yeni-gelenler'
     | '/yonetim'
     | '/urun/$slug'
@@ -210,16 +330,26 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AramaRoute: typeof AramaRoute
+  CerezRoute: typeof CerezRoute
   ErkekRoute: typeof ErkekRoute
   FavorilerRoute: typeof FavorilerRoute
   GizlilikRoute: typeof GizlilikRoute
   HakkimizdaRoute: typeof HakkimizdaRoute
   IadeRoute: typeof IadeRoute
+  IadeCaymaDegisimRoute: typeof IadeCaymaDegisimRoute
   IletisimRoute: typeof IletisimRoute
+  IletisimSaticiRoute: typeof IletisimSaticiRoute
   KadinRoute: typeof KadinRoute
   KoleksiyonRoute: typeof KoleksiyonRoute
+  KvkkRoute: typeof KvkkRoute
+  MesafeliSatisRoute: typeof MesafeliSatisRoute
+  OnBilgilendirmeRoute: typeof OnBilgilendirmeRoute
   ProfilRoute: typeof ProfilRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SifreYenileRoute: typeof SifreYenileRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeslimatRoute: typeof TeslimatRoute
+  TicariIletiRoute: typeof TicariIletiRoute
   YeniGelenlerRoute: typeof YeniGelenlerRoute
   YonetimRoute: typeof YonetimRoute
   UrunSlugRoute: typeof UrunSlugRoute
@@ -239,6 +369,13 @@ declare module '@tanstack/react-router' {
       path: '/arama'
       fullPath: '/arama'
       preLoaderRoute: typeof AramaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cerez': {
+      id: '/cerez'
+      path: '/cerez'
+      fullPath: '/cerez'
+      preLoaderRoute: typeof CerezRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/erkek': {
@@ -276,11 +413,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IadeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/iade-cayma-degisim': {
+      id: '/iade-cayma-degisim'
+      path: '/iade-cayma-degisim'
+      fullPath: '/iade-cayma-degisim'
+      preLoaderRoute: typeof IadeCaymaDegisimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/iletisim': {
       id: '/iletisim'
       path: '/iletisim'
       fullPath: '/iletisim'
       preLoaderRoute: typeof IletisimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iletisim-satici': {
+      id: '/iletisim-satici'
+      path: '/iletisim-satici'
+      fullPath: '/iletisim-satici'
+      preLoaderRoute: typeof IletisimSaticiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kadin': {
@@ -297,6 +448,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KoleksiyonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kvkk': {
+      id: '/kvkk'
+      path: '/kvkk'
+      fullPath: '/kvkk'
+      preLoaderRoute: typeof KvkkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mesafeli-satis': {
+      id: '/mesafeli-satis'
+      path: '/mesafeli-satis'
+      fullPath: '/mesafeli-satis'
+      preLoaderRoute: typeof MesafeliSatisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/on-bilgilendirme': {
+      id: '/on-bilgilendirme'
+      path: '/on-bilgilendirme'
+      fullPath: '/on-bilgilendirme'
+      preLoaderRoute: typeof OnBilgilendirmeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profil': {
       id: '/profil'
       path: '/profil'
@@ -304,11 +476,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sifre-yenile': {
+      id: '/sifre-yenile'
+      path: '/sifre-yenile'
+      fullPath: '/sifre-yenile'
+      preLoaderRoute: typeof SifreYenileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teslimat': {
       id: '/teslimat'
       path: '/teslimat'
       fullPath: '/teslimat'
       preLoaderRoute: typeof TeslimatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ticari-ileti': {
+      id: '/ticari-ileti'
+      path: '/ticari-ileti'
+      fullPath: '/ticari-ileti'
+      preLoaderRoute: typeof TicariIletiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/yeni-gelenler': {
@@ -338,16 +538,26 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AramaRoute: AramaRoute,
+  CerezRoute: CerezRoute,
   ErkekRoute: ErkekRoute,
   FavorilerRoute: FavorilerRoute,
   GizlilikRoute: GizlilikRoute,
   HakkimizdaRoute: HakkimizdaRoute,
   IadeRoute: IadeRoute,
+  IadeCaymaDegisimRoute: IadeCaymaDegisimRoute,
   IletisimRoute: IletisimRoute,
+  IletisimSaticiRoute: IletisimSaticiRoute,
   KadinRoute: KadinRoute,
   KoleksiyonRoute: KoleksiyonRoute,
+  KvkkRoute: KvkkRoute,
+  MesafeliSatisRoute: MesafeliSatisRoute,
+  OnBilgilendirmeRoute: OnBilgilendirmeRoute,
   ProfilRoute: ProfilRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SifreYenileRoute: SifreYenileRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeslimatRoute: TeslimatRoute,
+  TicariIletiRoute: TicariIletiRoute,
   YeniGelenlerRoute: YeniGelenlerRoute,
   YonetimRoute: YonetimRoute,
   UrunSlugRoute: UrunSlugRoute,
