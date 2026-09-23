@@ -4,7 +4,8 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Brand, Monogram } from '@/components/store/brand';
 import { ProductGrid } from '@/components/store/product-card';
-import { categories, products } from '@/data/catalog';
+import { useCatalog } from '@/components/store/catalog-provider';
+import { categories } from '@/data/catalog';
 import hero from '@/assets/campaign-hero.jpg';
 import lookbook from '@/assets/lookbook.jpg';
 import womenTshirt from '@/assets/women-tshirt.jpg';
@@ -17,6 +18,7 @@ import menLong from '@/assets/men-longsleeve.jpg';
 export const Route=createFileRoute('/')({head:()=>({meta:[{title:'Maison Calvela | Zamansız Kadın ve Erkek Giyim'},{name:'description',content:'Maison Calvela kadın ve erkek koleksiyonu. Rafine T-shirt, polo yaka ve uzun kollu tasarımlarla günlük zarafeti keşfedin.'},{property:'og:title',content:'Maison Calvela | Zamansız Kadın ve Erkek Giyim'},{property:'og:description',content:'Kadın ve erkek için modern, zamansız ve rafine giyim.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Home});
 const categoryImages=[womenTshirt,womenPolo,womenLong,menTshirt,menPolo,menLong];
 function Home(){
+ const {products}=useCatalog();
  const [subscribed,setSubscribed]=useState(false);
  const [email,setEmail]=useState('');
  const categoryTiles=[...['kadin','erkek'] as const].flatMap((gender,group)=>categories.map((cat,i)=>({gender,cat,image:categoryImages[group*3+i]})));

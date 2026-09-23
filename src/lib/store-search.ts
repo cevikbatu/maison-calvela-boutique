@@ -1,10 +1,10 @@
-import { products, type Product } from '@/data/catalog';
+import { type Product } from '@/data/catalog';
 
 function normalize(value: string) {
   return value.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-export function searchProducts(query: string): Product[] {
+export function searchProducts(query: string, products: Product[]): Product[] {
   const terms = normalize(query).split(/\s+/).filter(Boolean);
   if (!terms.length) return products.filter(product => product.visible);
   return products.filter(product => {
