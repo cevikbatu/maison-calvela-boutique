@@ -20,7 +20,7 @@ export const productMeta = createServerFn({method:'GET'}).inputValidator((slug:s
   if(absoluteImage){meta.push({property:'og:image',content:absoluteImage},{name:'twitter:image',content:absoluteImage});}
   const productUrl=canonicalSite?`${canonicalSite}/urun/${encodeURIComponent(product.slug)}`:undefined;
   const jsonLd:Record<string,unknown>={'@context':'https://schema.org','@type':'Product',name:product.title,description,brand:{'@type':'Brand',name:'Maison Calvela'},category:product.gender==='kadin'?'Kadın giyim':'Erkek giyim'};
-  if(absoluteImage)jsonLd.image=absoluteImage;
-  if(productUrl)jsonLd.url=productUrl;
+  if(absoluteImage)jsonLd['image']=absoluteImage;
+  if(productUrl)jsonLd['url']=productUrl;
   return {head:{meta, ...(productUrl?{links:[{rel:'canonical',href:productUrl}]}:{}),scripts:[{type:'application/ld+json',children:JSON.stringify(jsonLd).replace(/</g,'\\u003c')}]}};
 });

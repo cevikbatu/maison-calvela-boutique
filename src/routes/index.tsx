@@ -18,12 +18,9 @@ export const Route=createFileRoute('/')({head:()=>({meta:[{title:'Maison Calvela
 const categoryImages=[womenTshirt,womenPolo,womenLong,menTshirt,menPolo,menLong];
 function Home(){
  const {products}=useCatalog();
- const [subscribed,setSubscribed]=useState(false);
- const [email,setEmail]=useState('');
  const categoryTiles=[...['kadin','erkek'] as const].flatMap((gender,group)=>categories.map((cat,i)=>({gender,cat,image:categoryImages[group*3+i]})));
   const arrivals=['kadin','erkek'].flatMap(gender=>products.filter(p=>p.newArrival&&p.gender===gender).slice(0,2));
   const featured=['kadin','erkek'].flatMap(gender=>products.filter(p=>p.featured&&p.gender===gender).slice(1,3));
- function subscribe(e:FormEvent){e.preventDefault();if(email.trim())setSubscribed(true)}
  return <main>
     <section className="relative h-[min(650px,calc(100svh_-_150px))] min-h-[550px] overflow-hidden bg-background md:h-[min(740px,calc(100svh_-_126px))] md:bg-panel">
       <img src={hero} alt="Maison Calvela kadın ve erkek yeni sezon tasarımları" width={1920} height={1152} fetchPriority="high" className="absolute inset-x-0 top-0 h-[46%] w-full object-cover object-[72%_center] md:inset-0 md:h-full md:object-center"/>
