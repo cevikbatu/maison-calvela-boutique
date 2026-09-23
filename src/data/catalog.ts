@@ -18,7 +18,7 @@ export interface Category { slug: CategorySlug; name: string; }
 export interface Collection { id: string; title: string; description: string; productIds: string[]; }
 export interface ProductImage { id: string; productId: string; url: string; alt: string; sortOrder: number; }
 export interface ProductVariant { id: string; productId: string; color: string; colorToken: string; size: Size; inventory: number; sku: string; }
-export interface Product { id: string; slug: string; name: string; gender: Gender; category: CategorySlug; price: number; salePrice?: number; description: string; fabric: string; fit: string; care: string; colors: {name:string; token:string}[]; sizes: Size[]; images: string[]; featured: boolean; newArrival: boolean; visible: boolean; collectionIds: string[]; }
+export interface Product { id: string; slug: string; name: string; gender: Gender; category: CategorySlug; price: number; salePrice?: number; description: string; fabric: string; fit: string; care: string; fabricGuidance?: string; details?: string; productionNote?: string; modelHeight?: string; modelSize?: string; fitNote?: string; sizeMeasurements?: Record<string, {chest?: string; shoulder?: string; length?: string; sleeve?: string}>; colors: {name:string; token:string}[]; sizes: Size[]; images: string[]; featured: boolean; newArrival: boolean; visible: boolean; collectionIds: string[]; }
 export interface Profile { id: string; displayName?: string; email?: string; createdAt: string; }
 export interface Favorite { profileId: string; productId: string; }
 export interface CartItem { productId: string; size: Size; color: string; quantity: number; }
