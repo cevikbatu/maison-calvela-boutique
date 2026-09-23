@@ -1,0 +1,13 @@
+ALTER TABLE public.products ADD COLUMN fabric_guidance text NOT NULL DEFAULT '', ADD COLUMN details text NOT NULL DEFAULT '', ADD COLUMN production_note text NOT NULL DEFAULT '', ADD COLUMN model_height text NOT NULL DEFAULT '', ADD COLUMN model_size text NOT NULL DEFAULT '', ADD COLUMN fit_note text NOT NULL DEFAULT '', ADD COLUMN size_measurements jsonb NOT NULL DEFAULT '{}'::jsonb;
+CREATE TABLE public.addresses (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, label text NOT NULL DEFAULT '', recipient text NOT NULL DEFAULT '', line1 text NOT NULL DEFAULT '', line2 text NOT NULL DEFAULT '', district text NOT NULL DEFAULT '', city text NOT NULL DEFAULT '', postal_code text NOT NULL DEFAULT '', country text NOT NULL DEFAULT 'Türkiye', created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.addresses TO authenticated;
+GRANT ALL ON public.addresses TO service_role;
+ALTER TABLE public.addresses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY addresses_owner ON public.addresses FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+CREATE TRIGGER addresses_updated BEFORE UPDATE ON public.addresses FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+CREATE TABLE public.customer_preferences (user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE, marketing_consent boolean NOT NULL DEFAULT false, marketing_consented_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.customer_preferences TO authenticated;
+GRANT ALL ON public.customer_preferences TO service_role;
+ALTER TABLE public.customer_preferences ENABLE ROW LEVEL SECURITY;
+CREATE POLICY customer_preferences_owner ON public.customer_preferences FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+CREATE TRIGGER customer_preferences_updated BEFORE UPDATE ON public.customer_preferences FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();

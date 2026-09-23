@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          district: string
+          id: string
+          label: string
+          line1: string
+          line2: string
+          postal_code: string
+          recipient: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string
+          country?: string
+          created_at?: string
+          district?: string
+          id?: string
+          label?: string
+          line1?: string
+          line2?: string
+          postal_code?: string
+          recipient?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          district?: string
+          id?: string
+          label?: string
+          line1?: string
+          line2?: string
+          postal_code?: string
+          recipient?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart_items: {
         Row: {
           cart_id: string
@@ -135,6 +188,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      customer_preferences: {
+        Row: {
+          created_at: string
+          marketing_consent: boolean
+          marketing_consented_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          marketing_consent?: boolean
+          marketing_consented_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          marketing_consent?: boolean
+          marketing_consented_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorites: {
         Row: {
@@ -442,13 +527,20 @@ export type Database = {
           colors: Json
           created_at: string
           description: string
+          details: string
           fabric: string
+          fabric_guidance: string
           featured: boolean
           fit: string
+          fit_note: string
           gender: string
           id: string
+          model_height: string
+          model_size: string
           new_arrival: boolean
+          production_note: string
           published: boolean
+          size_measurements: Json
           sizes: string[]
           slug: string
           title: string
@@ -460,13 +552,20 @@ export type Database = {
           colors?: Json
           created_at?: string
           description?: string
+          details?: string
           fabric?: string
+          fabric_guidance?: string
           featured?: boolean
           fit?: string
+          fit_note?: string
           gender: string
           id?: string
+          model_height?: string
+          model_size?: string
           new_arrival?: boolean
+          production_note?: string
           published?: boolean
+          size_measurements?: Json
           sizes?: string[]
           slug: string
           title: string
@@ -478,13 +577,20 @@ export type Database = {
           colors?: Json
           created_at?: string
           description?: string
+          details?: string
           fabric?: string
+          fabric_guidance?: string
           featured?: boolean
           fit?: string
+          fit_note?: string
           gender?: string
           id?: string
+          model_height?: string
+          model_size?: string
           new_arrival?: boolean
+          production_note?: string
           published?: boolean
+          size_measurements?: Json
           sizes?: string[]
           slug?: string
           title?: string
