@@ -8,3 +8,5 @@
 - [x] Build secured owner login, product management, real-data dashboard, and view tracking.
 - [x] Verify public pages, protected access, mobile/desktop, and build diagnostics.
 - [x] Complete final verification and prepare the finished result (commit is managed by the platform).
+- [x] Add invitation-only first-owner activation with verified email, chosen password, and atomic one-time role grant.
+- [x] Verify locked/login/invite states on desktop and mobile; verified-password/authorized transition awaits owner opening the emailed link.
