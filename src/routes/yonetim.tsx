@@ -9,14 +9,14 @@ import { AdminDashboard } from '@/components/admin/dashboard';
 
 type State='checking'|'login'|'denied'|'authorized';
 export const Route = createFileRoute('/yonetim')({
-  head:()=>({meta:[{title:'Özel Yönetim | Maison Calvela'},{name:'robots',content:'noindex, nofollow'}]}),component:Admin,
+  head:()=>({meta:[{title:'Özel Yönetim | Maison Calvela'},{name:'description',content:'Maison Calvela özel yönetim alanı.'},{property:'og:title',content:'Özel Yönetim | Maison Calvela'},{property:'og:description',content:'Maison Calvela özel yönetim alanı.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'},{name:'robots',content:'noindex, nofollow'}]}),component:Admin,
 });
 function Admin(){
   const [state,setState]=useState<State>('checking');
   const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [error,setError]=useState(''); const [busy,setBusy]=useState(false);
   const navigate=useNavigate();
-  useEffect(()=>{let active=true;void (async()=>{const {data}=await supabase.auth.getSession();if(!active)return;if(!data.session){setState('login');return}try{await verifyAdmin({headers:{Authorization:`Bearer ${data.session.access_token}`}});if(active)setState('authorized')}catch{if(active)setState('denied')}})();return()=>{active=false}},[]);
-  async function signIn(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');const {data,error:authError}=await supabase.auth.signInWithPassword({email,password});setPassword('');if(authError||!data.session){setError('Giriş yapılamadı. E-posta ve şifrenizi kontrol edin.');setBusy(false);return}try{await verifyAdmin({headers:{Authorization:`Bearer ${data.session.access_token}`}});setState('authorized')}catch{await supabase.auth.signOut();setError('Bu hesap için yönetici yetkisi tanımlanmamış.');setState('login')}setBusy(false)}
+  useEffect(()=>{let active=true;void (async()=>{const {data,error:userError}=await supabase.auth.getUser();if(!active)return;if(userError||!data.user){setState('login');return}try{await verifyAdmin();if(active)setState('authorized')}catch{if(active)setState('denied')}})();return()=>{active=false}},[]);
+  async function signIn(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');const {data,error:authError}=await supabase.auth.signInWithPassword({email,password});setPassword('');if(authError||!data.session){setError('Giriş yapılamadı. E-posta ve şifrenizi kontrol edin.');setBusy(false);return}try{await verifyAdmin();setState('authorized')}catch{await supabase.auth.signOut();setError('Bu hesap için yönetici yetkisi tanımlanmamış.');setState('login')}setBusy(false)}
   async function signOut(){await supabase.auth.signOut();setState('login');void navigate({to:'/'})}
   if(state==='checking')return <main className="container-wide min-h-[60vh] py-32 text-center text-sm text-muted-foreground">Yetki kontrol ediliyor…</main>;
   if(state==='denied')return <main className="container-wide min-h-[60vh] py-28 text-center"><LockKeyhole className="mx-auto" size={34}/><h1 className="editorial-title mt-6 text-5xl">Erişim kısıtlı</h1><p className="mt-5 text-sm text-muted-foreground">Yönetim yalnızca yetkili hesaplara açıktır.</p><Button variant="luxuryOutline" className="mt-8" onClick={()=>void signOut()}>Çıkış Yap</Button></main>;
