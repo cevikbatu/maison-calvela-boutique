@@ -6,7 +6,6 @@ import type { Database } from '@/integrations/supabase/types';
 type ProductRow = Database['public']['Tables']['products']['Row'];
 type ImageRow = Database['public']['Tables']['product_images']['Row'];
 const Context = createContext<{products: Product[]; loading: boolean; reload: () => Promise<void>} | null>(null);
-export function catalogImage(url:string) { return url; }
 async function resolveImage(url:string):Promise<string>{if(!url.startsWith('catalog/'))return url;const {data,error}=await supabase.storage.from('catalog').download(url.slice(8));if(error||!data)return '';return URL.createObjectURL(data);}
 function adapt(row:ProductRow, categories:Record<string,CategorySlug>, images:ImageRow[]): Product {
   const rawColors=Array.isArray(row.colors)?row.colors:[];
