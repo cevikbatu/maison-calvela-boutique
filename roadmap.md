@@ -16,3 +16,4 @@
 - [ ] Add packaging concept, honest Maison Notes presentation, and professional draft legal pages.
 - [ ] Add product SEO, canonical/sitemap production configuration, and preview noindex.
 - [ ] Verify RLS, auth, admin isolation, public prices, routes, and desktop/mobile rendering; keep preview unpublished.
+- [ ] Run the available security scan/linter and finish verified release checks; final commit is platform-managed.
