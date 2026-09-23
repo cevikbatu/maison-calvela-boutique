@@ -3,7 +3,7 @@ import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductGrid } from '@/components/store/product-card';
 import { useStore } from '@/components/store/store-provider';
-import { products } from '@/data/catalog';
+import { useCatalog } from '@/components/store/catalog-provider';
 import { pageMeta } from '@/lib/page-meta';
 
 export const Route = createFileRoute('/favoriler')({
@@ -13,6 +13,7 @@ export const Route = createFileRoute('/favoriler')({
 
 function FavoritesPage() {
   const { favorites } = useStore();
+  const { products } = useCatalog();
   const items = products.filter(product => product.visible && favorites.includes(product.id));
   return <main className="container-wide min-h-[55vh] py-12 md:py-20">
     <p className="label-caps text-gold">MAISON CALVELA</p>
