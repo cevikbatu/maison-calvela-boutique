@@ -35,15 +35,33 @@ function Admin() {
 
   const checkAccess = useCallback(async (active: () => boolean) => {
     try {
-      const { available } = await getOwnerSetupStatus();
-      if (!active()) return;
-      setSetupAvailable(available);
       const { data, error: userError } = await supabase.auth.getUser();
       if (!active()) return;
-      if (userError || !data.user) { setState('login'); return; }
-      try { await verifyAdmin(); setState('authorized'); return; } catch { /* not yet an admin */ }
+      const user = userError ? null : data.user;
+      if (user) {
+        try {
+          await verifyAdmin();
+          if (!active()) return;
+          setState('authorized');
+          return;
+        } catch { /* Check first-owner setup only after normal admin authorization fails. */ }
+      }
       if (!active()) return;
-      if (available && data.user.email_confirmed_at) {
+      // Bootstrap availability must never prevent an existing admin from signing in.
+      let available = false;
+      try {
+        ({ available } = await getOwnerSetupStatus());
+      } catch {
+        if (!active()) return;
+        setSetupAvailable(false);
+        if (user) setError('Yönetim durumu kontrol edilemedi. Lütfen yeniden deneyin.');
+        setState(user ? 'denied' : 'login');
+        return;
+      }
+      if (!active()) return;
+      setSetupAvailable(available);
+      if (!user) { setState('login'); return; }
+      if (available && user.email_confirmed_at) {
         setState('set-password');
       } else {
         setState('denied');
