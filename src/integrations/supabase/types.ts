@@ -339,6 +339,35 @@ export type Database = {
           },
         ]
       }
+      product_prices: {
+        Row: {
+          price: number
+          product_id: string
+          sale_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          price?: number
+          product_id: string
+          sale_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          price?: number
+          product_id?: string
+          sale_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_prices_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variants: {
         Row: {
           color: string
@@ -419,9 +448,7 @@ export type Database = {
           gender: string
           id: string
           new_arrival: boolean
-          price: number
           published: boolean
-          sale_price: number | null
           sizes: string[]
           slug: string
           title: string
@@ -439,9 +466,7 @@ export type Database = {
           gender: string
           id?: string
           new_arrival?: boolean
-          price?: number
           published?: boolean
-          sale_price?: number | null
           sizes?: string[]
           slug: string
           title: string
@@ -459,9 +484,7 @@ export type Database = {
           gender?: string
           id?: string
           new_arrival?: boolean
-          price?: number
           published?: boolean
-          sale_price?: number | null
           sizes?: string[]
           slug?: string
           title?: string
