@@ -7,3 +7,4 @@
 - [ ] Refresh the monogram and owner-operated textile story.
 - [ ] Build secured owner login, product management, real-data dashboard, and view tracking.
 - [ ] Verify public pages, protected access, mobile/desktop, and build diagnostics.
+- [ ] Complete final verification and prepare the finished result (commit is managed by the platform).
