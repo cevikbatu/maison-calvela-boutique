@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS catalog_public_published_read ON storage.objects;

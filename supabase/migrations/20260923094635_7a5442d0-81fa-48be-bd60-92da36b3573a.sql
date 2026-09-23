@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS catalog_public_published_read ON storage.objects;
+CREATE POLICY catalog_public_published_read ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'catalog' AND EXISTS (SELECT 1 FROM public.product_images i JOIN public.products p ON p.id = i.product_id WHERE i.url = 'catalog/' || storage.objects.name AND p.published));
