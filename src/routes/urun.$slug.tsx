@@ -12,7 +12,7 @@ import { productMeta } from '@/lib/product-meta';
 
 export const Route=createFileRoute('/urun/$slug')({loader:async ({params})=>productMeta(params.slug),head:({loaderData})=>loaderData?.head??{meta:[{title:'Ürün | Maison Calvela'},{name:'description',content:'Maison Calvela koleksiyonu.'},{property:'og:title',content:'Ürün | Maison Calvela'},{property:'og:description',content:'Maison Calvela koleksiyonu.'},{property:'og:type',content:'product'},{name:'twitter:card',content:'summary_large_image'}]},component:ProductDetail});
 
-function Detail({label,text}:{label:string;text?:string}){return text?<details className="group py-5"><summary className="cursor-pointer font-medium">{label}</summary><p className="mt-4 leading-relaxed text-muted-foreground">{text}</p></details>:null;}
+function Detail({label,text}:{label:string;text:string|undefined}){return text?<details className="group py-5"><summary className="cursor-pointer font-medium">{label}</summary><p className="mt-4 leading-relaxed text-muted-foreground">{text}</p></details>:null;}
 const planned=(p:Product)=>p.category==='uzun-kollu'?'Kaşmir ve pamuk ağırlıklı bir kumaş yönü üzerinde çalışıyoruz. Yumuşak bir dokunuş ve doğal bir döküm arayışındayız.':'Pamuk ve ipek ağırlıklı bir kumaş yönü üzerinde çalışıyoruz. Hafif bir dokunuş, rahat bir döküm ve nefes alabilirlik dengesini araştırıyoruz.';
 function ProductDetail(){
   const {slug}=Route.useParams();const {products,loading}=useCatalog();const p=products.find(item=>item.slug===slug);const {favorites,toggleFavorite,addToCart}=useStore();

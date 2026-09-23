@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 
-const site = import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/,'');
+const site = import.meta.env['VITE_PUBLIC_SITE_URL']?.replace(/\/$/,'');
 const canonicalSite = site && /^https:\/\/(?!.*(?:preview|localhost|127\.0\.0\.1))[^/]+$/i.test(site) ? site : undefined;
 export const productionSite = canonicalSite;
 
