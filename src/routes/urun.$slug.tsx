@@ -17,7 +17,7 @@ const planned=(p:Product)=>p.category==='uzun-kollu'?'Kaşmir ve pamuk ağırlı
 function ProductDetail(){
   const {slug}=Route.useParams();const {products,loading}=useCatalog();const p=products.find(item=>item.slug===slug);const {favorites,toggleFavorite,addToCart}=useStore();
   const [size,setSize]=useState<Size|null>(null);const [color,setColor]=useState('');const [quantity,setQuantity]=useState(1);const [image,setImage]=useState(0);const [error,setError]=useState(false);const [guide,setGuide]=useState(false);
-  useEffect(()=>{setColor(p?.colors[0]?.name??'');setImage(0);setSize(null);if(p)void supabase.from('product_views').insert({product_id:p.id});},[p?.id]);
+  useEffect(()=>{setColor(p?.colors[0]?.name??'');setImage(0);setSize(null);if(p)void supabase.from('product_views').insert({product_id:p.id}).then(({error})=>{if(error)console.error('Ürün görüntüleme kaydedilemedi',error.message)});},[p?.id]);
   if(loading)return <main className="container-wide py-28 text-center">Ürün yükleniyor…</main>;
   if(!p)return <main className="container-wide py-28 text-center"><h1 className="editorial-title text-5xl">Ürün bulunamadı.</h1><Link to="/koleksiyon" className="mt-6 inline-block underline">Koleksiyona dön</Link></main>;
   const similar=products.filter(item=>item.id!==p.id&&item.gender===p.gender).slice(0,4);const complete=products.filter(item=>item.gender!==p.gender&&item.category===p.category).slice(0,4);

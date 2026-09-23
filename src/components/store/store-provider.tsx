@@ -20,6 +20,7 @@ export function StoreProvider({children}:{children:ReactNode}){
   const [favorites,setFavorites]=useState<string[]>([]);const [cart,setCart]=useState<CartItem[]>([]);const [user,setUser]=useState<User|null>(null);const [syncError,setSyncError]=useState('');const [cartOpen,setCartOpen]=useState(false);const [searchOpen,setSearchOpen]=useState(false);
   const active=useRef<{id:string;cartId:string|null;variants:Map<string,string>;itemIds:Map<string,string>}|null>(null);
   const loaded=useRef(false);const generation=useRef(0);const queue=useRef(Promise.resolve());
+  const firstFavoritesSave=useRef(true);const firstCartSave=useRef(true);
   function persist(task:()=>Promise<void>){queue.current=queue.current.then(task).catch(()=>{setSyncError('Hesap verileriniz eşitlenemedi. Lütfen sayfayı yenileyip yeniden deneyin.');});}
   useEffect(()=>{
     const guest=guestData();setFavorites(guest.favorites);setCart(guest.cart);loaded.current=true;
@@ -52,8 +53,8 @@ export function StoreProvider({children}:{children:ReactNode}){
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='USER_UPDATED'){setTimeout(()=>{void load(session?.user??null)},0)}});
     return ()=>{generation.current++;subscription.unsubscribe()};
   },[]);
-  useEffect(()=>{if(loaded.current&&!user&&!active.current)localStorage.setItem('mc-favorites',JSON.stringify(favorites))},[favorites,user]);
-  useEffect(()=>{if(loaded.current&&!user&&!active.current)localStorage.setItem('mc-cart',JSON.stringify(cart))},[cart,user]);
+  useEffect(()=>{if(firstFavoritesSave.current){firstFavoritesSave.current=false;return;}if(loaded.current&&!user&&!active.current)localStorage.setItem('mc-favorites',JSON.stringify(favorites))},[favorites,user]);
+  useEffect(()=>{if(firstCartSave.current){firstCartSave.current=false;return;}if(loaded.current&&!user&&!active.current)localStorage.setItem('mc-cart',JSON.stringify(cart))},[cart,user]);
   function toggleFavorite(id:string){const existing=favorites.includes(id);setFavorites(current=>existing?current.filter(v=>v!==id):[...current,id]);const account=active.current;if(account)persist(async()=>{const {error}=existing?await supabase.from('favorites').delete().eq('user_id',account.id).eq('product_id',id):await supabase.from('favorites').upsert({user_id:account.id,product_id:id},{onConflict:'user_id,product_id'});if(error)throw error;});}
   function saveItem(item:CartItem,quantity:number){const account=active.current;if(!account)return;persist(async()=>{const variant=account.variants.get(key(item));if(!variant)throw new Error('Bu varyant artık kullanılamıyor.');if(!account.cartId){const {data,error}=await supabase.from('carts').insert({user_id:account.id}).select('id').single();if(error)throw error;account.cartId=data.id;}const id=account.itemIds.get(key(item));if(quantity===0){if(id){const {error}=await supabase.from('cart_items').delete().eq('id',id);if(error)throw error;account.itemIds.delete(key(item));}return;}
     if(id){const {error}=await supabase.from('cart_items').update({quantity}).eq('id',id);if(error)throw error;}else{const {data,error}=await supabase.from('cart_items').insert({cart_id:account.cartId!,variant_id:variant,quantity}).select('id').single();if(error)throw error;account.itemIds.set(key(item),data.id);}});}

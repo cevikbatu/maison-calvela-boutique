@@ -16,7 +16,7 @@ export const productMeta = createServerFn({method:'GET'}).validator((slug:string
   if(!product)return {head:{meta}};
   const imagesUrl=new URL(`${base}/rest/v1/product_images`);imagesUrl.searchParams.set('product_id',`eq.${product.id}`);imagesUrl.searchParams.set('select','url,alt');imagesUrl.searchParams.set('order','sort_order.asc');imagesUrl.searchParams.set('limit','1');
   const imageResponse=await fetch(imagesUrl,{headers});const images=imageResponse.ok?await imageResponse.json() as Array<{url:string;alt:string}>:[];
-  const image=images[0]?.url;const absoluteImage=image?.startsWith('https://')?image:undefined;
+  const image=images[0]?.url;const absoluteImage=image?.startsWith('https://')?image:canonicalSite&&image?.startsWith('/')?`${canonicalSite}${image}`:undefined;
   if(absoluteImage){meta.push({property:'og:image',content:absoluteImage},{name:'twitter:image',content:absoluteImage});}
   const productUrl=canonicalSite?`${canonicalSite}/urun/${encodeURIComponent(product.slug)}`:undefined;
   const jsonLd:Record<string,unknown>={'@context':'https://schema.org','@type':'Product',name:product.title,description,brand:{'@type':'Brand',name:'Maison Calvela'},category:product.gender==='kadin'?'Kadın giyim':'Erkek giyim'};
