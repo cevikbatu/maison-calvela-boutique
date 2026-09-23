@@ -6,7 +6,7 @@ import type { Database } from '@/integrations/supabase/types';
 type ProductRow = Database['public']['Tables']['products']['Row'];
 type ImageRow = Database['public']['Tables']['product_images']['Row'];
 const Context = createContext<{products: Product[]; loading: boolean; reload: () => Promise<void>} | null>(null);
-export function catalogImage(url:string) { return url.startsWith('catalog/') ? `${import.meta.env['VITE_SUPABASE_URL']}/storage/v1/object/authenticated/${url}` : url; }
+export function catalogImage(url:string) { return url.startsWith('catalog/') ? `${import.meta.env['VITE_SUPABASE_URL']}/storage/v1/object/${url}` : url; }
 function adapt(row:ProductRow, categories:Record<string,CategorySlug>, images:ImageRow[]): Product {
   const rawColors=Array.isArray(row.colors)?row.colors:[];
   const colors=rawColors.filter((v):v is {name:string;token:string}=>typeof v==='object'&&v!==null&&!Array.isArray(v)&&typeof v['name']==='string'&&typeof v['token']==='string');
