@@ -1,0 +1,5 @@
+CREATE POLICY catalog_admin_upload ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id='catalog' AND app_private.has_role(auth.uid(),'admin') AND name ~ '^[a-f0-9-]{36}/[a-zA-Z0-9._-]+$');
+CREATE POLICY catalog_admin_update ON storage.objects FOR UPDATE TO authenticated USING (bucket_id='catalog' AND app_private.has_role(auth.uid(),'admin')) WITH CHECK (bucket_id='catalog' AND app_private.has_role(auth.uid(),'admin'));
+CREATE POLICY catalog_admin_delete ON storage.objects FOR DELETE TO authenticated USING (bucket_id='catalog' AND app_private.has_role(auth.uid(),'admin'));
+CREATE POLICY catalog_admin_read ON storage.objects FOR SELECT TO authenticated USING (bucket_id='catalog' AND app_private.has_role(auth.uid(),'admin'));
+CREATE POLICY catalog_public_read ON storage.objects FOR SELECT TO anon,authenticated USING (bucket_id='catalog' AND EXISTS (SELECT 1 FROM public.product_images i JOIN public.products p ON p.id=i.product_id WHERE p.published AND i.url = 'catalog/' || storage.objects.name));
