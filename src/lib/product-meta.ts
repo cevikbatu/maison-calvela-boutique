@@ -4,7 +4,7 @@ const site = import.meta.env['VITE_PUBLIC_SITE_URL']?.replace(/\/$/,'');
 const canonicalSite = site && /^https:\/\/(?!.*(?:preview|localhost|127\.0\.0\.1))[^/]+$/i.test(site) ? site : undefined;
 export const productionSite = canonicalSite;
 
-type Result = {head:{meta:Array<Record<string,string>>;links?:Array<{rel:string;href:string}>;scripts?:Array<{type:string;children:string}>}};
+type Result = {notFound?:boolean;head:{meta:Array<Record<string,string>>;links?:Array<{rel:string;href:string}>;scripts?:Array<{type:string;children:string}>}};
 export const productMeta = createServerFn({method:'GET'}).validator((slug:string)=>slug).handler(async ({data:slug}):Promise<Result>=>{
   const base=process.env['SUPABASE_URL'];const key=process.env['SUPABASE_PUBLISHABLE_KEY'];
   if(!base||!key)return {head:{meta:[{title:'Ürün | Maison Calvela'},{name:'description',content:'Maison Calvela koleksiyonu.'},{property:'og:title',content:'Ürün | Maison Calvela'},{property:'og:description',content:'Maison Calvela koleksiyonu.'},{property:'og:type',content:'product'},{name:'twitter:card',content:'summary_large_image'}]}};
@@ -13,7 +13,7 @@ export const productMeta = createServerFn({method:'GET'}).validator((slug:string
   const response=await fetch(url,{headers});const rows=response.ok?await response.json() as Array<{id:string;title:string;description:string;gender:string;slug:string}>:[];const product=rows[0];
   const title=product?`${product.title} | Maison Calvela`:'Ürün | Maison Calvela';const description=product?.description?.slice(0,160)||'Maison Calvela kadın ve erkek koleksiyonu.';
   const meta:Array<Record<string,string>>=[{title},{name:'description',content:description},{property:'og:title',content:title},{property:'og:description',content:description},{property:'og:type',content:'product'},{name:'twitter:card',content:'summary_large_image'}];
-  if(!product)return {head:{meta}};
+  if(!product)return {notFound:response.ok,head:{meta}};
   const imagesUrl=new URL(`${base}/rest/v1/product_images`);imagesUrl.searchParams.set('product_id',`eq.${product.id}`);imagesUrl.searchParams.set('select','url,alt');imagesUrl.searchParams.set('order','sort_order.asc');imagesUrl.searchParams.set('limit','1');
   const imageResponse=await fetch(imagesUrl,{headers});const images=imageResponse.ok?await imageResponse.json() as Array<{url:string;alt:string}>:[];
   const image=images[0]?.url;const absoluteImage=image?.startsWith('https://')?image:canonicalSite&&image?.startsWith('/')?`${canonicalSite}${image}`:undefined;

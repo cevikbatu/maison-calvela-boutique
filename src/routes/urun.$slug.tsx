@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { Heart, Minus, Plus, ArrowLeft, Package, Truck, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,9 @@ import { type Size, type Product } from '@/data/catalog';
 import { useStore } from '@/components/store/store-provider';
 import { productMeta } from '@/lib/product-meta';
 
-export const Route=createFileRoute('/urun/$slug')({loader:async ({params})=>productMeta({data:params.slug}),head:({loaderData})=>loaderData?.head??{meta:[{title:'Ürün | Maison Calvela'},{name:'description',content:'Maison Calvela koleksiyonu.'},{property:'og:title',content:'Ürün | Maison Calvela'},{property:'og:description',content:'Maison Calvela koleksiyonu.'},{property:'og:type',content:'product'},{name:'twitter:card',content:'summary_large_image'}]},component:ProductDetail});
+export const Route=createFileRoute('/urun/$slug')({loader:async ({params})=>{const result=await productMeta({data:params.slug});if(result.notFound)throw notFound();return result;},head:({loaderData})=>loaderData?.head??{meta:[{title:'Ürün | Maison Calvela'},{name:'description',content:'Maison Calvela koleksiyonu.'},{property:'og:title',content:'Ürün | Maison Calvela'},{property:'og:description',content:'Maison Calvela koleksiyonu.'},{property:'og:type',content:'product'},{name:'twitter:card',content:'summary_large_image'}]},component:ProductDetail,notFoundComponent:ProductNotFound});
+
+function ProductNotFound(){return <main className="container-wide py-28 text-center"><h1 className="editorial-title text-5xl">Ürün bulunamadı.</h1><Link to="/koleksiyon" className="mt-6 inline-block underline">Koleksiyona dön</Link></main>;}
 
 function Detail({label,text}:{label:string;text:string|undefined}){return text?<details className="group py-5"><summary className="cursor-pointer font-medium">{label}</summary><p className="mt-4 leading-relaxed text-muted-foreground">{text}</p></details>:null;}
 const planned=(p:Product)=>p.category==='uzun-kollu'?'Kaşmir ve pamuk ağırlıklı bir kumaş yönü üzerinde çalışıyoruz. Yumuşak bir dokunuş ve doğal bir döküm arayışındayız.':'Pamuk ve ipek ağırlıklı bir kumaş yönü üzerinde çalışıyoruz. Hafif bir dokunuş, rahat bir döküm ve nefes alabilirlik dengesini araştırıyoruz.';
@@ -20,7 +22,7 @@ function ProductDetail(){
   const [size,setSize]=useState<Size|null>(null);const [color,setColor]=useState('');const [quantity,setQuantity]=useState(1);const [image,setImage]=useState(0);const [error,setError]=useState(false);const [guide,setGuide]=useState(false);
   useEffect(()=>{setColor(p?.colors[0]?.name??'');setImage(0);setSize(null);if(p)void supabase.from('product_views').insert({product_id:p.id}).then(({error})=>{if(error)console.error('Ürün görüntüleme kaydedilemedi',error.message)});},[p?.id]);
   if(loading)return <main className="container-wide py-28 text-center">Ürün yükleniyor…</main>;
-  if(!p)return <main className="container-wide py-28 text-center"><h1 className="editorial-title text-5xl">Ürün bulunamadı.</h1><Link to="/koleksiyon" className="mt-6 inline-block underline">Koleksiyona dön</Link></main>;
+  if(!p)return <ProductNotFound/>;
   const similar=products.filter(item=>item.id!==p.id&&item.gender===p.gender).slice(0,4);const complete=products.filter(item=>item.gender!==p.gender&&item.category===p.category).slice(0,4);
   const actualFabric=Boolean(p.fabric.trim());
   return <main>
