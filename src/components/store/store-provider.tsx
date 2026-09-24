@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { CartItem, Size } from '@/data/catalog';
 import { supabase } from '@/integrations/supabase/client';
+import { useCatalog } from './catalog-provider';
+import { stockSelectionError } from './stock-selection';
 import type { User } from '@supabase/supabase-js';
 
 type StoreContextValue = {
   favorites: string[]; cart: CartItem[]; user: User|null; syncError: string;
   toggleFavorite: (id:string)=>void;
-  addToCart: (productId:string,size:Size,color:string,quantity?:number)=>void;
+  addToCart: (productId:string,size:Size,color:string,quantity?:number)=>string|null;
   updateQuantity: (productId:string,size:Size,color:string,quantity:number)=>void;
   removeFromCart: (productId:string,size:Size,color:string)=>void;
   cartOpen: boolean; setCartOpen: (open:boolean)=>void;
@@ -17,6 +19,7 @@ const key=(item:CartItem)=>`${item.productId}:${item.size}:${item.color}`;
 const validCart=(v:unknown):v is CartItem=>typeof v==='object'&&v!==null&&typeof (v as CartItem).productId==='string'&&typeof (v as CartItem).size==='string'&&typeof (v as CartItem).color==='string'&&Number.isSafeInteger((v as CartItem).quantity)&&(v as CartItem).quantity>0;
 function guestData(){try{const f:unknown=JSON.parse(localStorage.getItem('mc-favorites')||'[]');const c:unknown=JSON.parse(localStorage.getItem('mc-cart')||'[]');return {favorites:Array.isArray(f)?f.filter((v):v is string=>typeof v==='string'):[],cart:Array.isArray(c)?c.filter(validCart):[]};}catch{return {favorites:[],cart:[]};}}
 export function StoreProvider({children}:{children:ReactNode}){
+  const {products,loading:catalogLoading,error:catalogError}=useCatalog();
   const [favorites,setFavorites]=useState<string[]>([]);const [cart,setCart]=useState<CartItem[]>([]);const [user,setUser]=useState<User|null>(null);const [syncError,setSyncError]=useState('');const [cartOpen,setCartOpen]=useState(false);const [searchOpen,setSearchOpen]=useState(false);
   const active=useRef<{id:string;cartId:string|null;variants:Map<string,string>;itemIds:Map<string,string>}|null>(null);
   const loaded=useRef(false);const generation=useRef(0);const queue=useRef(Promise.resolve());
@@ -58,7 +61,7 @@ export function StoreProvider({children}:{children:ReactNode}){
   function toggleFavorite(id:string){const existing=favorites.includes(id);setFavorites(current=>existing?current.filter(v=>v!==id):[...current,id]);const account=active.current;if(account)persist(async()=>{const {error}=existing?await supabase.from('favorites').delete().eq('user_id',account.id).eq('product_id',id):await supabase.from('favorites').upsert({user_id:account.id,product_id:id},{onConflict:'user_id,product_id'});if(error)throw error;});}
   function saveItem(item:CartItem,quantity:number){const account=active.current;if(!account)return;persist(async()=>{const variant=account.variants.get(key(item));if(!variant)throw new Error('Bu varyant artık kullanılamıyor.');if(!account.cartId){const {data,error}=await supabase.from('carts').insert({user_id:account.id}).select('id').single();if(error)throw error;account.cartId=data.id;}const id=account.itemIds.get(key(item));if(quantity===0){if(id){const {error}=await supabase.from('cart_items').delete().eq('id',id);if(error)throw error;account.itemIds.delete(key(item));}return;}
     if(id){const {error}=await supabase.from('cart_items').update({quantity}).eq('id',id);if(error)throw error;}else{const {data,error}=await supabase.from('cart_items').insert({cart_id:account.cartId!,variant_id:variant,quantity}).select('id').single();if(error)throw error;account.itemIds.set(key(item),data.id);}});}
-  function addToCart(productId:string,size:Size,color:string,quantity=1){const item={productId,size,color,quantity};const next=Math.min(99,(cart.find(v=>key(v)===key(item))?.quantity??0)+quantity);setCart(current=>current.some(v=>key(v)===key(item))?current.map(v=>key(v)===key(item)?{...v,quantity:next}:v):[...current,{...item,quantity:next}]);saveItem(item,next);setCartOpen(true);}
+  function addToCart(productId:string,size:Size,color:string,quantity=1){const error=stockSelectionError(products.find(p=>p.id===productId),color,size,{loading:catalogLoading,error:catalogError});if(error)return error;const item={productId,size,color,quantity};const next=Math.min(99,(cart.find(v=>key(v)===key(item))?.quantity??0)+quantity);setCart(current=>current.some(v=>key(v)===key(item))?current.map(v=>key(v)===key(item)?{...v,quantity:next}:v):[...current,{...item,quantity:next}]);saveItem(item,next);setCartOpen(true);return null;}
   function updateQuantity(productId:string,size:Size,color:string,quantity:number){const item={productId,size,color,quantity:Math.max(1,Math.min(99,quantity))};setCart(current=>current.map(v=>key(v)===key(item)?item:v));saveItem(item,item.quantity);}
   function removeFromCart(productId:string,size:Size,color:string){const item={productId,size,color,quantity:1};setCart(current=>current.filter(v=>key(v)!==key(item)));saveItem(item,0);}
   return <StoreContext.Provider value={{favorites,cart,user,syncError,toggleFavorite,addToCart,updateQuantity,removeFromCart,cartOpen,setCartOpen,searchOpen,setSearchOpen}}>{children}</StoreContext.Provider>;
