@@ -61,7 +61,7 @@ test('actual addToCart rejects unknown product',()=>assert.match(store().addToCa
 test('actual addToCart blocks stale catalog during loading or error',()=>{
  for(const field of ['loading','error']){state[field]=true;try{assert.match(store().addToCart('p','S','Siyah'),/Stok bilgisi/);}finally{state[field]=false;}}
 });
-test('positive stock accepts quantity above inventory: limits deferred',()=>assert.equal(store().addToCart('p','S','Siyah',6),null));
+test('positive stock rejects quantity above inventory',()=>assert.match(store().addToCart('p','S','Siyah',6),/yeterli stok/));
 
 const ready={loading:false,error:false};
 const failing={loading:false,error:true};
