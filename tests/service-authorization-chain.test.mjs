@@ -15,7 +15,13 @@ test('actual migration chain: request, role and attachment authorization', {skip
   const item=(await db.query('INSERT INTO order_items(order_id,product_id,quantity,unit_price) VALUES($1,$2,1,0) RETURNING id',[order,product])).rows[0].id;
   await asActor(db,owner);
   await db.query("SELECT create_service_request($1,$2,'exchange','fixture@example.invalid','Beden değişimi','')",[request,item]);
-  await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES('service-request-photos',$1)",[`${request}/fixture.png`]);
+  await assert.rejects(db.query("INSERT INTO storage.objects(bucket_id,name) VALUES('service-request-photos',$1)",[`${request}/fixture.png`]),/row-level security/);
+  await db.exec('RESET ROLE');
+  const upload='50000000-0000-0000-0000-000000000001',hash='a'.repeat(64);
+  await db.query('SELECT reserve_request_photo($1,$2,$3,$4)',[owner,request,upload,hash]);
+  await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES('service-request-photos',$1)",[`${request}/${upload}.webp`]);
+  await db.query('SELECT complete_request_photo($1,$2,$3,$4)',[owner,request,upload,hash]);
+  await asActor(db,owner);
   await t.test('owner sees own request; cannot modify decision, history or promote self',async()=>{
    assert.equal((await db.query('SELECT * FROM service_requests')).rows.length,1);
    for(const sql of ["UPDATE service_requests SET decision_reason='forged',status='approved'","UPDATE service_request_history SET description='forged'",`INSERT INTO user_roles(user_id,role) VALUES('${owner}','admin')`])await assert.rejects(db.exec(sql),/permission denied|row-level security/);

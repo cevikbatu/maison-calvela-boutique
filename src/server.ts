@@ -1,4 +1,6 @@
 import "./lib/error-capture";
+import {indexingHeaders} from './lib/indexing';
+import {publicIndexingSite} from './lib/indexing-config';
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
@@ -47,14 +49,18 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      if(new URL(request.url).pathname.startsWith('/api/request-photos/')){
+        const {proxyPhotoUpload}=await import('./lib/photo-upload-proxy.server');
+        return indexingHeaders(await proxyPhotoUpload(request),undefined);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return indexingHeaders(await normalizeCatastrophicSsrResponse(response),publicIndexingSite);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
         status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
+        headers: { "content-type": "text/html; charset=utf-8", "X-Robots-Tag":"noindex, nofollow" },
       });
     }
   },

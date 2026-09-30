@@ -26,7 +26,14 @@ export function ServiceRequests({userId,email}:{userId:string;email:string}){
  }
  async function upload(){if(writing.current||!selected)return;writing.current=true;setBusy(true);setError('');
   try{validateRequestPhotos(files);if(!files.length)throw new Error('Fotoğraf seçin.');
-   for(const file of files){const suffix=file.type==='image/jpeg'?'jpg':file.type==='image/png'?'png':'webp';const {error}=await supabase.storage.from('service-request-photos').upload(`${selected}/${crypto.randomUUID()}.${suffix}`,file,{upsert:false,contentType:file.type});if(error)throw new Error('Bazı fotoğraflar yüklenemedi. Başvurunuz kayıtlıdır; detayı yeniden açıp yüklenenleri kontrol edin.');}
+   const {data:session}=await supabase.auth.getSession();const token=session.session?.access_token;if(!token)throw new Error('Giriş yapmalısınız.');
+   for(const file of files){
+    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await file.arrayBuffer()))).map(v=>v.toString(16).padStart(2,'0')).join('');
+    const identity=`mc-photo:${selected}:${hash}`;let uploadId=localStorage.getItem(identity);
+    if(!uploadId){uploadId=crypto.randomUUID();localStorage.setItem(identity,uploadId);}
+    const response=await fetch(`/api/request-photos/${selected}/${uploadId}`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':file.type,'X-Photo-Name':encodeURIComponent(file.name)},body:file});
+    if(!response.ok)throw new Error(response.status===400?'Fotoğrafın içeriği veya biçimi geçersiz.':response.status===409?'En fazla 3 fotoğraf yükleyebilirsiniz.':'Fotoğraf yüklenemedi. Aynı dosyayla tekrar deneyin; başvurunuz kayıtlıdır.');
+   }
    if(alive.current){setFiles([]);setFileVersion(v=>v+1);setNotice('Fotoğraflar yüklendi. Görmek için başvuru detayını yeniden açabilirsiniz.');}
   }catch(cause){if(alive.current)setError(cause instanceof Error?cause.message:'Fotoğraf yüklenemedi.');}finally{writing.current=false;if(alive.current)setBusy(false);}
  }

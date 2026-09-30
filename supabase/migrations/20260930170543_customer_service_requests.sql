@@ -106,7 +106,62 @@ GRANT EXECUTE ON FUNCTION app_private.decide_service_request(uuid,timestamptz,te
 
 INSERT INTO storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
  VALUES('service-request-photos','service-request-photos',false,5242880,ARRAY['image/jpeg','image/png','image/webp']);
+-- Only the verified server upload pipeline can allocate/write attachments.
+CREATE TABLE app_private.request_photo_slots(
+ request_id uuid NOT NULL REFERENCES public.service_requests(id),upload_id uuid NOT NULL,
+ slot smallint NOT NULL CHECK(slot BETWEEN 1 AND 3),content_hash text NOT NULL CHECK(content_hash ~ '^[a-f0-9]{64}$'),
+ complete boolean NOT NULL DEFAULT false,created_at timestamptz NOT NULL DEFAULT now(),
+ PRIMARY KEY(request_id,upload_id),UNIQUE(request_id,slot)
+);
+ALTER TABLE app_private.request_photo_slots ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON app_private.request_photo_slots FROM PUBLIC,anon,authenticated,service_role;
+
+CREATE FUNCTION app_private.reserve_request_photo(p_user uuid,p_request uuid,p_upload uuid,p_hash text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE existing app_private.request_photo_slots; free_slot integer;
+BEGIN
+ IF p_upload IS NULL OR p_hash IS NULL OR p_hash !~ '^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'Invalid upload';END IF;
+ PERFORM 1 FROM public.service_requests WHERE id=p_request AND user_id=p_user AND status IN('pending','reviewing') FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Request unavailable';END IF;
+ SELECT * INTO existing FROM app_private.request_photo_slots WHERE request_id=p_request AND upload_id=p_upload;
+ IF FOUND THEN
+  IF existing.content_hash<>p_hash THEN RAISE EXCEPTION 'Upload conflict';END IF;
+ ELSE
+  SELECT n INTO free_slot FROM generate_series(1,3) n WHERE NOT EXISTS(SELECT 1 FROM app_private.request_photo_slots s WHERE s.request_id=p_request AND s.slot=n) ORDER BY n LIMIT 1;
+  IF free_slot IS NULL THEN RETURN NULL;END IF;
+  INSERT INTO app_private.request_photo_slots(request_id,upload_id,slot,content_hash) VALUES(p_request,p_upload,free_slot,p_hash) RETURNING * INTO existing;
+ END IF;
+ RETURN jsonb_build_object('path',p_request::text||'/'||p_upload::text||'.webp','complete',existing.complete);
+END $$;
+CREATE FUNCTION app_private.complete_request_photo(p_user uuid,p_request uuid,p_upload uuid,p_hash text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+BEGIN
+ PERFORM 1 FROM public.service_requests WHERE id=p_request AND user_id=p_user FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Request unavailable';END IF;
+ UPDATE app_private.request_photo_slots SET complete=true WHERE request_id=p_request AND upload_id=p_upload AND content_hash=p_hash;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Upload unavailable';END IF;
+ RETURN true;
+END $$;
+CREATE FUNCTION public.reserve_request_photo(p_user uuid,p_request uuid,p_upload uuid,p_hash text)
+RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path='' AS $$SELECT app_private.reserve_request_photo(p_user,p_request,p_upload,p_hash)$$;
+CREATE FUNCTION public.complete_request_photo(p_user uuid,p_request uuid,p_upload uuid,p_hash text)
+RETURNS boolean LANGUAGE sql SECURITY INVOKER SET search_path='' AS $$SELECT app_private.complete_request_photo(p_user,p_request,p_upload,p_hash)$$;
+REVOKE ALL ON FUNCTION app_private.reserve_request_photo(uuid,uuid,uuid,text),app_private.complete_request_photo(uuid,uuid,uuid,text),public.reserve_request_photo(uuid,uuid,uuid,text),public.complete_request_photo(uuid,uuid,uuid,text) FROM PUBLIC,anon,authenticated;
+GRANT USAGE ON SCHEMA app_private TO service_role;
+GRANT EXECUTE ON FUNCTION app_private.reserve_request_photo(uuid,uuid,uuid,text),app_private.complete_request_photo(uuid,uuid,uuid,text),public.reserve_request_photo(uuid,uuid,uuid,text),public.complete_request_photo(uuid,uuid,uuid,text) TO service_role;
+CREATE FUNCTION app_private.can_read_request_photo(p_path text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+ SELECT EXISTS(SELECT 1 FROM app_private.request_photo_slots s JOIN public.service_requests r ON r.id=s.request_id
+ WHERE s.complete AND s.request_id::text||'/'||s.upload_id::text||'.webp'=p_path
+ AND (r.user_id=auth.uid() OR app_private.has_role(auth.uid(),'admin')))
+$$;
+REVOKE ALL ON FUNCTION app_private.can_read_request_photo(text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION app_private.can_read_request_photo(text) TO authenticated;
 CREATE POLICY request_photos_read ON storage.objects FOR SELECT TO authenticated USING(
- bucket_id='service-request-photos' AND EXISTS(SELECT 1 FROM public.service_requests r WHERE r.id::text=split_part(name,'/',1)));
-CREATE POLICY request_photos_insert ON storage.objects FOR INSERT TO authenticated WITH CHECK(
- bucket_id='service-request-photos' AND EXISTS(SELECT 1 FROM public.service_requests r WHERE r.id::text=split_part(name,'/',1) AND r.user_id=(SELECT auth.uid()) AND r.status IN('pending','reviewing')));
+ bucket_id='service-request-photos' AND app_private.can_read_request_photo(name));
+-- Restrictive guard also prevents a broader pre-existing Storage policy bypass.
+CREATE POLICY request_photos_no_client_insert ON storage.objects AS RESTRICTIVE FOR INSERT TO anon,authenticated WITH CHECK(bucket_id<>'service-request-photos');
+CREATE POLICY request_photos_no_client_update ON storage.objects AS RESTRICTIVE FOR UPDATE TO anon,authenticated USING(bucket_id<>'service-request-photos') WITH CHECK(bucket_id<>'service-request-photos');
+CREATE POLICY request_photos_no_client_delete ON storage.objects AS RESTRICTIVE FOR DELETE TO anon,authenticated USING(bucket_id<>'service-request-photos');
+CREATE POLICY request_photos_read_boundary ON storage.objects AS RESTRICTIVE FOR SELECT TO authenticated USING(bucket_id<>'service-request-photos' OR app_private.can_read_request_photo(name));
+CREATE POLICY request_photos_no_anon_read ON storage.objects AS RESTRICTIVE FOR SELECT TO anon USING(bucket_id<>'service-request-photos');

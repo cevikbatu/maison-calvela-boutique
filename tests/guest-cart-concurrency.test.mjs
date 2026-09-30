@@ -64,5 +64,34 @@ test('real PostgreSQL: independent connections serialize concurrent guest merges
    assert.equal((await setup.query('SELECT count(*)::int n FROM app_private.cart_merge_receipts WHERE request_id=$1',[id])).rows[0].n,0);
    assert.equal((await merge(b,id,2))[0].accepted,2);assert.equal(await quantity(),3);
   });
+  await t.test('normal write versus merge uses one lock protocol; stale writes cannot overwrite merge',async()=>{
+   await setup.query('UPDATE product_variants SET inventory=5 WHERE id=$1',[v.id]);
+   await assert.rejects(a.query('UPDATE cart_items SET quantity=99 WHERE variant_id=$1',[v.id]),/permission denied/);
+   for(let i=0;i<5;i++){
+    await setup.query('UPDATE cart_items SET quantity=3 WHERE variant_id=$1',[v.id]);
+    await setup.query('BEGIN');await setup.query('SELECT id FROM carts WHERE user_id=$1 FOR UPDATE',[user]);
+    const jobs=Promise.allSettled([a.query('SELECT set_cart_quantity($1,3,4,$2)',[v.id,user]),merge(b,randomUUID(),3)]);
+    try{
+     let waiting=0;
+     for(let n=0;n<100;n++){await setup.query('SELECT pg_stat_clear_snapshot()');waiting=(await setup.query("SELECT count(*)::int n FROM pg_stat_activity WHERE pid=ANY($1::int[]) AND wait_event_type='Lock'",[[a.processID,b.processID]])).rows[0].n;if(waiting===2)break;await new Promise(r=>setTimeout(r,25));}
+     assert.equal(waiting,2);
+    }finally{await setup.query('COMMIT');}
+    const [write,merged]=await jobs;assert.equal(merged.status,'fulfilled');
+    if(write.status==='rejected')assert.match(write.reason.message,/Cart changed/);
+    assert.equal(await quantity(),5);
+   }
+  });
+  await t.test('concurrent attachment allocations keep three slots and idempotent upload identity',async()=>{
+   const order=(await setup.query('INSERT INTO orders(user_id) VALUES($1) RETURNING id',[user])).rows[0].id;
+   const item=(await setup.query('INSERT INTO order_items(order_id,product_id,quantity,unit_price) VALUES($1,$2,1,0) RETURNING id',[order,v.product_id])).rows[0].id;
+   const request=randomUUID(),upload=randomUUID(),hash='a'.repeat(64);
+   await a.query("SELECT create_service_request($1,$2,'return','fixture@example.invalid','','')",[request,item]);
+   const c=await connect(),d=await connect();for(const client of [c,d])await client.query('SET ROLE service_role');
+   const reserve=async(client,id)=>(await client.query('SELECT reserve_request_photo($1,$2,$3,$4) result',[user,request,id,hash])).rows[0].result;
+   const same=await Promise.all([reserve(c,upload),reserve(d,upload)]);assert.deepEqual(same[0],same[1]);
+   const rest=await Promise.all([reserve(c,randomUUID()),reserve(d,randomUUID()),reserve(c,randomUUID())]);
+   assert.equal(rest.filter(Boolean).length,2);assert.equal(rest.filter(v=>v===null).length,1);
+   assert.equal((await setup.query('SELECT count(*)::int n FROM app_private.request_photo_slots WHERE request_id=$1',[request])).rows[0].n,3);
+  });
  }finally{await Promise.allSettled(connections.map(c=>c.end()));}
 });

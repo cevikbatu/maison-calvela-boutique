@@ -36,7 +36,7 @@ test('service request ownership, audit and decision guards in isolated PostgreSQ
    await create(exchanged,'exchange','Beden değişimi');
    await assert.rejects(db.exec("UPDATE service_requests SET status='approved'"),/permission denied/);
    await assert.rejects(decide(returned,'approved'),/admin required/);
-   await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES('service-request-photos',$1)",[returned+'/photo.webp']);
+   await assert.rejects(db.query("INSERT INTO storage.objects(bucket_id,name) VALUES('service-request-photos',$1)",[returned+'/photo.webp']),/row-level security/);
   });
   await t.test('admin cannot reject statutory return and stale decisions fail; audit is appended',async()=>{
    await actor(admin);await assert.rejects(decide(returned,'rejected','Sebep makul değil'),/statutory/);

@@ -1,7 +1,7 @@
+import {publicIndexingSite as site} from './indexing-config';
 export function pageMeta(title: string, description: string, path?:string) {
   const fullTitle = `${title} | Maison Calvela`;
-  const site=import.meta.env['VITE_PUBLIC_SITE_URL']?.replace(/\/$/,'');
-  const canonical=site&&/^https:\/\/(?!.*(?:preview|localhost|127\.0\.0\.1))[^/]+$/i.test(site)&&path?`${site}${path}`:undefined;
+  const canonical=site&&path?`${site}${path}`:undefined;
   return { meta: [
     { title: fullTitle },
     { name: 'description', content: description },

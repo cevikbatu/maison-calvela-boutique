@@ -1,7 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 
-const site = import.meta.env['VITE_PUBLIC_SITE_URL']?.replace(/\/$/,'');
-const canonicalSite = site && /^https:\/\/(?!.*(?:preview|localhost|127\.0\.0\.1))[^/]+$/i.test(site) ? site : undefined;
+import {publicIndexingSite as canonicalSite} from './indexing-config';
 export const productionSite = canonicalSite;
 
 type Result = {notFound?:boolean;head:{meta:Array<Record<string,string>>;links?:Array<{rel:string;href:string}>;scripts?:Array<{type:string;children:string}>}};
