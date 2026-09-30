@@ -105,3 +105,31 @@ RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path='' AS $$
 $$;
 REVOKE ALL ON FUNCTION public.merge_guest_cart(uuid,jsonb,uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.merge_guest_cart(uuid,jsonb,uuid) TO authenticated;
+
+-- Normal cart mutations use the same parent-cart lock as merge. Stale absolute
+-- quantities are rejected instead of overwriting quantities accepted by a merge.
+REVOKE INSERT,UPDATE,DELETE ON public.cart_items FROM PUBLIC,anon,authenticated;
+CREATE FUNCTION app_private.set_cart_quantity(p_variant uuid,p_expected integer,p_quantity integer,p_expected_user uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE actor uuid:=auth.uid(); cart uuid; item public.cart_items; stock integer; visible boolean;
+BEGIN
+ IF actor IS NULL OR actor IS DISTINCT FROM p_expected_user THEN RAISE EXCEPTION 'Account changed';END IF;
+ IF p_expected IS NULL OR p_expected<0 OR p_quantity IS NULL OR p_quantity<0 OR (p_quantity>99 AND p_quantity>=p_expected) THEN RAISE EXCEPTION 'Invalid quantity';END IF;
+ INSERT INTO public.carts(user_id) VALUES(actor) ON CONFLICT(user_id) DO NOTHING;
+ SELECT id INTO STRICT cart FROM public.carts WHERE user_id=actor FOR UPDATE;
+ SELECT v.inventory,p.published INTO stock,visible FROM public.product_variants v JOIN public.products p ON p.id=v.product_id WHERE v.id=p_variant FOR SHARE OF p,v;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Variant unavailable';END IF;
+ SELECT * INTO item FROM public.cart_items WHERE cart_id=cart AND variant_id=p_variant FOR UPDATE;
+ IF coalesce(item.quantity,0)<>p_expected THEN RAISE EXCEPTION 'Cart changed';END IF;
+ IF p_quantity>coalesce(item.quantity,0) AND (NOT visible OR p_quantity>least(stock,99)) THEN RAISE EXCEPTION 'Stock insufficient';END IF;
+ IF p_quantity=0 THEN DELETE FROM public.cart_items WHERE id=item.id;
+ ELSIF item.id IS NULL THEN INSERT INTO public.cart_items(cart_id,variant_id,quantity) VALUES(cart,p_variant,p_quantity) RETURNING * INTO item;
+ ELSE UPDATE public.cart_items SET quantity=p_quantity WHERE id=item.id RETURNING * INTO item;END IF;
+ RETURN jsonb_build_object('cartId',cart,'itemId',CASE WHEN p_quantity=0 THEN NULL ELSE item.id END);
+END $$;
+REVOKE ALL ON FUNCTION app_private.set_cart_quantity(uuid,integer,integer,uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION app_private.set_cart_quantity(uuid,integer,integer,uuid) TO authenticated;
+CREATE FUNCTION public.set_cart_quantity(p_variant uuid,p_expected integer,p_quantity integer,p_expected_user uuid)
+RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path='' AS $$SELECT app_private.set_cart_quantity(p_variant,p_expected,p_quantity,p_expected_user)$$;
+REVOKE ALL ON FUNCTION public.set_cart_quantity(uuid,integer,integer,uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.set_cart_quantity(uuid,integer,integer,uuid) TO authenticated;

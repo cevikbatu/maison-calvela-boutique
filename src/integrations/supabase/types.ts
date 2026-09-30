@@ -661,6 +661,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      set_cart_quantity: { Args: {p_variant:string;p_expected:number;p_quantity:number;p_expected_user:string}; Returns: Json }
       create_service_request: { Args: {p_id: string;p_order_item_id: string;p_kind: string;p_email: string;p_reason: string;p_description: string}; Returns: string }
       decide_service_request: { Args: {p_id: string;p_expected_updated_at: string;p_status: string;p_reason: string}; Returns: boolean }
       activate_first_owner: {

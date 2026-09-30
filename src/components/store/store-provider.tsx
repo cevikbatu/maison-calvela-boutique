@@ -87,16 +87,16 @@ export function StoreProvider({children}:{children:ReactNode}){
     return()=>window.removeEventListener('storage',onStorage);
   },[]);
   function toggleFavorite(id:string){const existing=favorites.includes(id);setFavorites(current=>existing?current.filter(v=>v!==id):[...current,id]);const account=active.current;if(account)persist(async()=>{const {error}=existing?await supabase.from('favorites').delete().eq('user_id',account.id).eq('product_id',id):await supabase.from('favorites').upsert({user_id:account.id,product_id:id},{onConflict:'user_id,product_id'});if(error)throw error;});}
-  function saveItem(item:CartItem,quantity:number){const account=active.current;if(!account)return;
+  function saveItem(item:CartItem,quantity:number,expected:number){const account=active.current;if(!account)return;
     const epoch=account.epoch??0;
     queue.current=queue.current.then(async()=>{
     if(active.current!==account||account.recovering||(account.epoch??0)!==epoch)return;
     try {
-    const id=account.itemIds.get(key(item));
-    if(quantity===0){if(id){const {error}=await supabase.from('cart_items').delete().eq('id',id);if(error)throw error;account.itemIds.delete(key(item));}return;}
     const variant=account.variants.get(key(item));if(!variant)throw new Error('Bu varyant artık kullanılamıyor.');
-    if(!account.cartId){const {data,error}=await supabase.from('carts').insert({user_id:account.id}).select('id').single();if(error)throw error;account.cartId=data.id;}
-    if(id){const {error}=await supabase.from('cart_items').update({quantity}).eq('id',id);if(error)throw error;}else{const {data,error}=await supabase.from('cart_items').insert({cart_id:account.cartId!,variant_id:variant,quantity}).select('id').single();if(error)throw error;account.itemIds.set(key(item),data.id);}
+    const {data,error}=await supabase.rpc('set_cart_quantity',{p_variant:variant,p_expected:expected,p_quantity:quantity,p_expected_user:account.id});
+    if(error)throw error;
+    const saved=data as {cartId:string;itemId:string|null};account.cartId=saved.cartId;
+    if(saved.itemId)account.itemIds.set(key(item),saved.itemId);else account.itemIds.delete(key(item));
     } catch {
       if(active.current!==account)return;
       account.epoch=epoch+1;account.recovering=true;
@@ -136,7 +136,7 @@ export function StoreProvider({children}:{children:ReactNode}){
     const error=cartQuantityError(products.find(p=>p.id===productId),next,{loading:catalogLoading,error:catalogError});
     if(error)return error;
     replaceCart(existing?currentCart.current.map(v=>key(v)===key(item)?next:v):[...currentCart.current,next]);
-    saveItem(next,next.quantity);setCartOpen(true);return null;
+    saveItem(next,next.quantity,existing?.quantity??0);setCartOpen(true);return null;
   }
   function updateQuantity(productId:string,size:Size,color:string,quantity:number){
     if(sessionBusy.current||active.current?.recovering)return 'Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.';
@@ -151,12 +151,13 @@ export function StoreProvider({children}:{children:ReactNode}){
       if(error)return error;
     }
     replaceCart(currentCart.current.map(v=>key(v)===key(item)?item:v));
-    saveItem(item,quantity);return null;
+    saveItem(item,quantity,existing.quantity);return null;
   }
   function removeFromCart(productId:string,size:Size,color:string){
     if(sessionBusy.current||active.current?.recovering){setSyncError('Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.');return;}
     const item={productId,size,color,quantity:1};
-    replaceCart(currentCart.current.filter(v=>key(v)!==key(item)));saveItem(item,0);
+    const existing=currentCart.current.find(v=>key(v)===key(item));if(!existing)return;
+    replaceCart(currentCart.current.filter(v=>key(v)!==key(item)));saveItem(item,0,existing.quantity);
   }
   return <StoreContext.Provider value={{favorites,cart,user,syncError,toggleFavorite,addToCart,updateQuantity,removeFromCart,cartOpen,setCartOpen,searchOpen,setSearchOpen}}>{children}</StoreContext.Provider>;
 }
