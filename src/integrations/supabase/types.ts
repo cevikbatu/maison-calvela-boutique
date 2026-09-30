@@ -14,6 +14,8 @@ export type Database = {
   }
   public: {
     Tables: {
+      service_requests: { Row: import('../../lib/service-request-model').ServiceRequest; Insert: never; Update: never; Relationships: [] }
+      service_request_history: { Row: import('../../lib/service-request-model').RequestHistory; Insert: never; Update: never; Relationships: [] }
       default_addresses: {
         Row: {user_id: string; address_id: string}
         Insert: {user_id: string; address_id: string}
@@ -659,6 +661,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_service_request: { Args: {p_id: string;p_order_item_id: string;p_kind: string;p_email: string;p_reason: string;p_description: string}; Returns: string }
+      decide_service_request: { Args: {p_id: string;p_expected_updated_at: string;p_status: string;p_reason: string}; Returns: boolean }
       activate_first_owner: {
         Args: { _email: string; _user_id: string }
         Returns: boolean
