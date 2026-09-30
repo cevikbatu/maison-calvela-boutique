@@ -41,7 +41,7 @@ Metinler özgün taslaktır; başka mağazalardan kopyalanmamıştır. Şirket b
 
 Canlı uygulama için ayrı kullanıcı onayı gereklidir. Yerel test başarısı bu onayın yerine geçmez.
 
-## Son doğrulama — 30 Eylül 2026
+## Önceki doğrulama — 30 Eylül 2026, 184b7d8
 
 - 164 test: 164 başarılı, 0 başarısız, 0 skip (`MC_PGLITE_MODULE` tanımlı).
 - `tsc --noEmit`: başarılı.
@@ -61,4 +61,39 @@ Canlı uygulama için ayrı kullanıcı onayı gereklidir. Yerel test başarıs�
 - `d79fd44`: gerçek kayıtlarla admin genel bakış ve koleksiyon özeti.
 - `c4e1065`: şirket placeholder yapılandırması ve özgün politika taslakları.
 
-Bu altyapı canlı satışa hazır onayı değildir. Tam migration zinciri, çok bağlantılı yarış, gerçek Storage MIME/içerik doğrulaması, gönderim sağlayıcısı ve hukuki/şirket eksikleri tamamlanmadan yayın yapılmamalıdır. Gelişmiş müşteri yönetimi ve ayrı fiyat/ayar modülleri ayrıca genişletilebilir; mevcut ürün/fiyat/stok düzenleyicisi korunmuştur.
+Bu altyapı canlı satışa hazır onayı değildir. Tam migration zinciri, çok bağlantılı yarış, gerçek Storage içerik doğrulaması, gönderim sağlayıcısı ve hukuki/şirket eksikleri tamamlanmadan yayın yapılmamalıdır. Mevcut ürün/fiyat/stok düzenleyicisi korunmuştur.
+
+## Güncel P0 kapısı — 30 Eylül 2026
+
+Testler ve pending migration kilit düzeltmesi: yerel commit `875e2ad` (`test: verify migration chain and request authorization`).
+
+Durumlar yalnız belirtilen kanıt kapsamındadır. PGlite SQL policy testleri gerçek Supabase HTTP/JWT veya Storage dosya doğrulaması değildir. Önceki tarayıcı sonuçları bu tur yeniden çalıştırılmadı.
+
+| Alan | Durum | Kanıt / kalan iş |
+| --- | --- | --- |
+| Pending migration audit | PASS (yerel kaynak) | [Ayrıntılı denetim](p0-migration-audit.md); dört dosya. Request item SELECT için FOR SHARE eklendi. Remote şema drift kontrolü yapılmadı. |
+| Clean migration chain | PASS (PGlite) / NOT TESTED (gerçek Supabase) | `tests/migration-chain.test.mjs`: bütün 19 migration. |
+| Upgrade chain | PASS (PGlite) / NOT TESTED (gerçek Supabase) | Aynı test: 15 eski + 4 pending; varyant ID/stok/SKU/timestamp ve adres korunuyor. |
+| PostgreSQL concurrency | BLOCKED | Yerel PostgreSQL/Docker sunucusu yok; otomatik kurulum yapılmadı. `tests/guest-cart-concurrency.test.mjs` opt-in, SKIP. |
+| Guest merge idempotency / partial / 99 / rollback | PASS (PGlite) | Mevcut guest merge DB/unit testleri. Gerçek bağlantı yarışı ve normal cart yazımlarıyla paralellik NOT TESTED. |
+| Storage gerçek byte/MIME doğrulaması | FAIL | Yalnız beyan edilen MIME/boyut kontrolü var. Kullanıcı geçici kapatmayı istemedi; mevcut upload korundu. Güvenli server hattı [audit belgesinde](p0-migration-audit.md) tasarlandı, uygulanmadı. |
+| Storage RLS | PASS (SQL fixture) / NOT TESTED (HTTP) | `tests/service-authorization-chain.test.mjs`: owner/admin okuyabilir, other/anon okuyamaz. Signed URL/gerçek byte/Storage API testleri eksik. |
+| Return/exchange authorization | PASS (PGlite) | Gerçek migration/has_role ile müşteri izolasyonu, admin karar alanları, self-promotion engeli, ret gerekçesi/audit/customer status. Mevcut DB testi kanuni talep ayrımını da doğrular. |
+| Admin authorization | PASS (kod/SQL + önceki kullanıcı doğrulaması) | Çalışan rol/owner kontrolü değiştirilmedi. Canlı hesap yetkileri bu tur tekrar sorgulanmadı. |
+| Tüm testler | PASS + 1 NOT TESTED | 173 toplam, 172 pass, 0 fail, 1 skip (gerçek PostgreSQL). `MC_PGLITE_MODULE` tanımlı. |
+| TypeScript | PASS | `tsc --noEmit --pretty false`, exit 0. |
+| Production build | PASS | Bun/Vite/Nitro build, exit 0; geçici kopya, ana routeTree değişmedi. |
+| Gelişmiş müşteri yönetimi | BLOCKED | Kullanıcının P0 öncelik şartı nedeniyle başlanmadı; sahte müşteri/sipariş oluşturulmadı. |
+| Ayrı fiyat yönetimi | BLOCKED | P0 sonrası; mevcut gerçek fiyat/ürün/stok editörü korundu. |
+| Mağaza ayarları | BLOCKED | P0 sonrası; onaylı logo/slogan ve şirket placeholderları korundu. |
+| DNS / Cloudflare planı | PASS (plan) | [Domain/staging planı](domain-staging-plan.md); kayıtlar koşullu, hedef IP uydurulmadı. |
+| www / HTTPS / TLS planı | PASS (plan) | Aynı belge; gerçek uygulama NOT TESTED. |
+| Staging planı | PASS (plan) | Access, alternatif hostname bypass, ayrı DB/env, noindex/robots. Mevcut HTTPS URL'nin robots'a etkisi açıklandı. |
+| Gerçek e-posta sağlayıcısı/sender | LATER | Outbox gönderimi kapalı kalır. |
+| Şirket resmi bilgileri | LATER | Uydurulmaz. |
+| Nihai hukuk incelemesi | LATER | Kanuni haklar korunur; uzman son onayı ayrı. |
+| Ödeme sağlayıcısı | LATER | Checkout/tahsilat açılmadı. |
+| Production secrets son yapılandırma | LATER | Secret değerleri değiştirilmedi veya raporlanmadı. |
+| DNS geçişi / production deployment | LATER | Hiçbir dış işlem yapılmadı; ayrı onay gerekir. |
+
+P0 tamamlanmış değildir. Fotoğraf sunucu doğrulaması, gerçek çok bağlantılı PostgreSQL ve Supabase Storage/Auth HTTP doğrulaması yayın engelleridir. Bu engeller müşterilerin veya stokların canlı ortamda değiştirilmesiyle test edilmemelidir. `.env` dosyasının geçmişten gelen Git takibi ayrıca kontrollü secret denetimi gerektirir; bu tur içeriği değiştirilmedi.
