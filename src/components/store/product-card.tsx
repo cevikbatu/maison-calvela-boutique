@@ -3,7 +3,7 @@ import { Heart, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { type Product, type Size } from '@/data/catalog';
+import { formatPrice, type Product, type Size } from '@/data/catalog';
 import { StockSizeOptions } from './stock-size-options';
 import { retainAvailableSize, stockSelectionError } from './stock-selection';
 import { useCatalog } from './catalog-provider';
@@ -33,12 +33,12 @@ export function ProductCard({product}:{product:Product}) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0"><p className="label-caps text-gold">MAISON CALVELA</p><Link to="/urun/$slug" params={{slug:product.slug}} className="mt-1 block text-sm font-medium hover:underline underline-offset-4">{product.name}</Link></div>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">{product.gender==='kadin'?'Kadın':'Erkek'} / {product.category==='tshirt'?'T-shirt':product.category==='polo'?'Polo Yaka':'Uzun Kollu'}</p>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-muted-foreground">{product.gender==='kadin'?'Kadın':'Erkek'} / {product.category==='tshirt'?'T-shirt':product.category==='polo'?'Polo Yaka':'Uzun Kollu'}</p><p className="text-sm font-medium">{product.price!==null&&product.salePrice!=null&&product.salePrice<product.price?<><span>{formatPrice(product.salePrice)}</span><span className="ml-2 text-xs font-normal text-muted-foreground line-through">{formatPrice(product.price)}</span></>:formatPrice(product.price)}</p></div>
       <div className="mt-3 flex gap-2" aria-label="Renk seçenekleri">{product.colors.map(c=><span key={c.name} title={c.name} className={`h-3.5 w-3.5 rounded-full border border-border swatch-${c.token}`}/>)}</div>
     </div>
     <Dialog open={quickOpen} onOpenChange={setQuickOpen}>
       <DialogContent className="max-w-[min(900px,94vw)] border-border p-0 sm:rounded-none overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="grid md:grid-cols-2"><img src={product.images[0]} alt={product.name} className="h-72 w-full object-cover object-top md:h-full"/><div className="p-6 md:p-10 flex flex-col justify-center"><p className="label-caps text-gold">MAISON CALVELA / {product.gender==='kadin'?'KADIN':'ERKEK'}</p><DialogTitle className="editorial-title mt-4 text-4xl font-normal">{product.name}</DialogTitle><DialogDescription className="mt-5 leading-relaxed">{product.description}</DialogDescription>
+        <div className="grid md:grid-cols-2"><img src={product.images[0]} alt={product.name} className="h-72 w-full object-cover object-top md:h-full"/><div className="p-6 md:p-10 flex flex-col justify-center"><p className="label-caps text-gold">MAISON CALVELA / {product.gender==='kadin'?'KADIN':'ERKEK'}</p><DialogTitle className="editorial-title mt-4 text-4xl font-normal">{product.name}</DialogTitle><p className="mt-3 text-lg font-medium">{product.price!==null&&product.salePrice!=null&&product.salePrice<product.price?<><span>{formatPrice(product.salePrice)}</span><span className="ml-3 text-sm font-normal text-muted-foreground line-through">{formatPrice(product.price)}</span></>:formatPrice(product.price)}</p><DialogDescription className="mt-5 leading-relaxed">{product.description}</DialogDescription>
           <p className="label-caps mt-7">RENK: {color}</p><div className="mt-3 flex flex-wrap gap-2">{product.colors.map(c=><Button key={c.name} type="button" variant={color===c.name?'default':'outline'} size="sm" onClick={()=>changeColor(c.name)}>{c.name}</Button>)}</div>
           <p className="label-caps mt-7">BEDEN</p><StockSizeOptions catalog={catalog} onRetry={reload} product={product} color={color} size={size} onSelect={s=>{setSize(s);setError(null)}}/>{error&&!loading&&!catalogError&&<p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
           <Button variant="luxury" size="lg" className="mt-8" disabled={loading||catalogError} onClick={()=>{const issue=stockSelectionError(product,color,size,catalog);if(issue){setError(issue);return}const rejected=addToCart(product.id,size!,color);setError(rejected);if(!rejected)setQuickOpen(false)}}>{size?'Sepete Ekle':'Önce Beden Seçin'}</Button><Link to="/urun/$slug" params={{slug:product.slug}} onClick={()=>setQuickOpen(false)} className="mt-4 text-center text-xs underline underline-offset-4">Ürün detaylarını gör</Link>

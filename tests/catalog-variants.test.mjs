@@ -15,10 +15,10 @@ hooks.deregister();
 const product = (id, gender='kadin') => ({id,slug:id,title:`${id} Polo`,gender,category_id:'polo',description:'Test polo',fabric:'',production_note:'',model_height:'',model_size:'',size_measurements:{},sizes:['S','M'],colors:[{name:'Siyah',token:'black'},{name:'Beyaz',token:'ivory'}],published:true,featured:true,new_arrival:true});
 const variant = (id, product_id, color, size, inventory=0) => ({id,product_id,color,size,inventory,sku:null,updated_at:'2026-09-23T10:00:00Z'});
 const rows = [variant('black-S','a','Siyah','S',5),variant('black-M','a','Siyah','M',8),variant('white-S','a','Beyaz','S',3),variant('white-M','a','Beyaz','M',0),variant('other-product','b','Siyah','S',17)];
-function client({products=[product('a'),product('b','erkek')],variants=rows,fail=false}={}) {
+function client({products=[product('a'),product('b','erkek')],variants=rows,prices=[],fail=false}={}) {
   const calls=[];
   return {calls,from(table){
-    let values=table==='products'?products:table==='categories'?[{id:'polo',slug:'polo'}]:table==='product_variants'?variants:[];
+    let values=table==='products'?products:table==='categories'?[{id:'polo',slug:'polo'}]:table==='product_variants'?variants:table==='product_prices'?prices:[];
     let start=0,end=Infinity;const call={table};calls.push(call);
     const q={select(columns){call.columns=columns;return q},eq(key,value){values=values.filter(v=>v[key]===value);return q},in(key,list){call.productIds=list;values=values.filter(v=>list.includes(v[key]));return q},order(){return q},range(a,b){start=a;end=b;return q},then(resolve,reject){return Promise.resolve(fail&&table==='product_variants'?{data:null,error:{message:'simulated 503'}}:{data:values.slice(start,end+1),error:null}).then(resolve,reject)}};
     return q;
@@ -84,4 +84,9 @@ test('variant pagination retains rows beyond the API page size',async()=>{
   const db=client({products:[product('a')],variants});const [p]=await load(db);
   assert.equal(p.variants.length,1001);assert.equal(getProductVariantStock(p,'Siyah','size1000').inventory,1000);
   assert.equal(db.calls.filter(c=>c.table==='product_variants').length,2);
+});
+
+test('catalog reads actual retail prices and preserves missing prices as null',async()=>{
+ const [a,b]=await load(client({prices:[{product_id:'a',price:'1234.56',sale_price:'999.90'}]}));
+ assert.equal(a.price,1234.56);assert.equal(a.salePrice,999.9);assert.equal(b.price,null);
 });
