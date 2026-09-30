@@ -18,10 +18,10 @@ export function useState(initial){const h=globalThis.__cartTest,i=h.cursor++;if(
 export function useRef(initial){const h=globalThis.__cartTest,i=h.cursor++;return h.slots[i]??(h.slots[i]={current:initial});}
 export function useEffect(fn,deps){const h=globalThis.__cartTest,i=h.cursor++,old=h.slots[i];if(!old||deps.some((v,n)=>v!==old[n])){h.slots[i]=deps;h.effects.push(fn);}}`);
 const catalog=virtual('export function useCatalog(){return globalThis.__cartTest.catalog;}');
-const client=virtual(`export const supabase={auth:{getUser:async()=>({data:{user:globalThis.__cartTest.signed?{id:'u'}:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(table){
+const client=virtual(`export const supabase={async rpc(name,args){const h=globalThis.__cartTest;if(h.mergeFailure)return {data:null,error:{message:'offline'}};const accepted=Math.min(args.p_items[0].quantity,5-h.serverQuantity);h.serverQuantity+=accepted;return {data:args.p_items.map(v=>({...v,accepted,remaining:v.quantity-accepted})),error:null};},auth:{getUser:async()=>({data:{user:globalThis.__cartTest.signed?{id:'u'}:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(table){
 let action='select',payload;const q={select(){return q},eq(){return q},maybeSingle(){return q},single(){return q},update(v){action='update';payload=v;return q},insert(v){action='insert';payload=v;return q},delete(){action='delete';return q},then(resolve,reject){
 const h=globalThis.__cartTest;if(action!=='select')h.writes.push({table,action,payload});
-const data=action!=='select'?{id:'new'}:table==='favorites'?[]:table==='carts'?{id:'c'}:table==='product_variants'?[{id:'v',product_id:'p',color:'Siyah',size:'S'}]:table==='cart_items'?[{id:'ci',variant_id:'v',quantity:3}]:[];
+const data=action!=='select'?{id:'new'}:table==='favorites'?[]:table==='carts'?{id:'c'}:table==='product_variants'?[{id:'v',product_id:'p',color:'Siyah',size:'S'}]:table==='cart_items'?[{id:'ci',variant_id:'v',quantity:h.serverQuantity}]:[];
 return Promise.resolve({data,error:((action!=='select'&&h.failWrites)||(action==='select'&&h.failReads))?{message:'mock failure'}:null}).then(resolve,reject);}};return q;}};`);
 const loader=virtual('export function loadCatalog(){return new Promise((resolve,reject)=>globalThis.__cartTest.requests.push({resolve,reject}));}');
 const hooks=registerHooks({
@@ -43,9 +43,10 @@ const {CatalogProvider}=await import('../src/components/store/catalog-provider.t
 hooks.deregister();
 function render(){harness.cursor=0;const value=StoreProvider({children:null}).props.value;for(const effect of harness.effects.splice(0))effect();return value;}
 async function settle(){for(let i=0;i<8;i++)await new Promise(resolve=>setImmediate(resolve));return render();}
-async function setup(signed){
- Object.assign(harness,{slots:[],cursor:0,effects:[],signed,writes:[],catalog:{products:[structuredClone(product)],...ready}});
- const storage=new Map(signed?[]:[['mc-cart',JSON.stringify([item])]]);
+async function setup(signed,guestCart=signed?[]:[item],mergeFailure=false){
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{locks:{request:(_name,task)=>Promise.resolve().then(task)}}});
+ Object.assign(harness,{slots:[],cursor:0,effects:[],signed,writes:[],serverQuantity:3,mergeFailure,catalog:{products:[structuredClone(product)],...ready}});
+ const storage=new Map([['mc-cart',JSON.stringify(guestCart)]]);
  globalThis.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
  render();return settle();
 }
@@ -155,4 +156,14 @@ test('rapid successful decrease increase remove is persisted in order',async()=>
  const api=await setup(true);api.updateQuantity('p','S','Siyah',2);api.addToCart('p','S','Siyah',3);api.removeFromCart('p','S','Siyah');
  assert.deepEqual((await settle()).cart,[]);
  assert.deepEqual(harness.writes.map(v=>[v.action,v.payload?.quantity]),[['update',2],['update',5],['delete',undefined]]);
+});
+test('login merges guest stock partially and reads the updated account cart',async()=>{
+ const api=await setup(true,[item]);assert.equal(api.user.id,'u');assert.equal(api.cart[0].quantity,5);
+ assert.match(api.syncError,/1 ürün adedi/);
+ assert.equal(JSON.parse(localStorage.getItem('mc-cart-state-v2')).cart[0].quantity,1);
+});
+test('failed login merge preserves guest snapshot and blocks unpersisted account edits',async()=>{
+ const api=await setup(true,[item],true);assert.deepEqual(api.cart,[item]);assert.ok(api.addToCart('p','S','Siyah'));
+ assert.equal(JSON.parse(localStorage.getItem('mc-cart-state-v2')).cart[0].quantity,3);
+ assert.equal(harness.serverQuantity,3);
 });

@@ -3,6 +3,7 @@ import type { CartItem, Size } from '@/data/catalog';
 import { supabase } from '@/integrations/supabase/client';
 import { useCatalog } from './catalog-provider';
 import { cartQuantityError, cartQuantityMessage } from './cart-stock';
+import { cartStateStorageKey, mergeGuestCartForUser, persistGuestCart, readGuestCart } from './guest-cart-merge';
 import type { User } from '@supabase/supabase-js';
 
 type StoreContextValue = {
@@ -17,21 +18,27 @@ type StoreContextValue = {
 const StoreContext=createContext<StoreContextValue|null>(null);
 const key=(item:CartItem)=>`${item.productId}:${item.size}:${item.color}`;
 const validCart=(v:unknown):v is CartItem=>typeof v==='object'&&v!==null&&typeof (v as CartItem).productId==='string'&&typeof (v as CartItem).size==='string'&&typeof (v as CartItem).color==='string'&&Number.isSafeInteger((v as CartItem).quantity)&&(v as CartItem).quantity>0;
-function guestData(){try{const f:unknown=JSON.parse(localStorage.getItem('mc-favorites')||'[]');const c:unknown=JSON.parse(localStorage.getItem('mc-cart')||'[]');return {favorites:Array.isArray(f)?f.filter((v):v is string=>typeof v==='string'):[],cart:Array.isArray(c)?c.filter(validCart):[]};}catch{return {favorites:[],cart:[]};}}
+function guestData(){try{const f:unknown=JSON.parse(localStorage.getItem('mc-favorites')||'[]');const c=readGuestCart();return {favorites:Array.isArray(f)?f.filter((v):v is string=>typeof v==='string'):[],cart:c.filter(validCart)};}catch{return {favorites:[],cart:[]};}}
 export function StoreProvider({children}:{children:ReactNode}){
   const {products,loading:catalogLoading,error:catalogError}=useCatalog();
   const [favorites,setFavorites]=useState<string[]>([]);const [cart,setCart]=useState<CartItem[]>([]);const [user,setUser]=useState<User|null>(null);const [syncError,setSyncError]=useState('');const [cartOpen,setCartOpen]=useState(false);const [searchOpen,setSearchOpen]=useState(false);
   // Update this snapshot synchronously so batched clicks cannot reuse an old cart total.
   const currentCart=useRef(cart);
-  function replaceCart(next:CartItem[]){currentCart.current=next;setCart(next);}
+  function replaceCart(next:CartItem[]){if(JSON.stringify(currentCart.current)===JSON.stringify(next))return;currentCart.current=next;setCart(next);}
+  const sessionBusy=useRef(false);
+  const guestBase=useRef<CartItem[]>([]);
+  const guestQueue=useRef(Promise.resolve());
   const active=useRef<{id:string;cartId:string|null;variants:Map<string,string>;itemIds:Map<string,string>;epoch?:number;recovering?:boolean}|null>(null);
   const loaded=useRef(false);const generation=useRef(0);const queue=useRef(Promise.resolve());
   const firstFavoritesSave=useRef(true);const firstCartSave=useRef(true);
   function persist(task:()=>Promise<void>){const account=active.current;queue.current=queue.current.then(async()=>{if(account && active.current===account)await task();}).catch(()=>{setSyncError('Hesap verileriniz eşitlenemedi. Lütfen sayfayı yenileyip yeniden deneyin.');});}
   useEffect(()=>{
-    const guest=guestData();setFavorites(guest.favorites);replaceCart(guest.cart);loaded.current=true;
+    const guest=guestData();guestBase.current=guest.cart;setFavorites(guest.favorites);replaceCart(guest.cart);loaded.current=true;
     async function load(u:User|null){const stamp=++generation.current;
-      if(!u){active.current=null;setUser(null);const data=guestData();setFavorites(data.favorites);replaceCart(data.cart);setSyncError('');return;}
+      sessionBusy.current=true;active.current=null;
+      await guestQueue.current;await queue.current;
+      if(stamp!==generation.current)return;
+      if(!u){active.current=null;setUser(null);const data=guestData();setFavorites(data.favorites);guestBase.current=data.cart;replaceCart(data.cart);sessionBusy.current=false;setSyncError('');return;}
       const guest=guestData();
       try{
         const [f,cs,vs]=await Promise.all([supabase.from('favorites').select('product_id').eq('user_id',u.id),supabase.from('carts').select('id').eq('user_id',u.id).maybeSingle(),supabase.from('product_variants').select('id,product_id,size,color')]);
@@ -40,19 +47,20 @@ export function StoreProvider({children}:{children:ReactNode}){
         let cartId=cs.data?.id??null;const variants=new Map((vs.data??[]).map(v=>[`${v.product_id}:${v.size}:${v.color}`,v.id]));
         const known=new Set((f.data??[]).map(v=>v.product_id));const newly=guest.favorites.filter(id=>!known.has(id));
         if(newly.length){const {error}=await supabase.from('favorites').upsert(newly.map(product_id=>({user_id:u.id,product_id})),{onConflict:'user_id,product_id',ignoreDuplicates:true});if(error)throw error;newly.forEach(id=>known.add(id));}
-        if(guest.cart.length&&!cartId){const {data,error}=await supabase.from('carts').insert({user_id:u.id}).select('id').single();if(error)throw error;cartId=data.id;}
+        let mergeResult:{attempted:boolean;accepted:number;remaining:number}|null=null;
+        if(guest.cart.length){mergeResult=await mergeGuestCartForUser(u.id,()=>stamp===generation.current);}
+        if(stamp!==generation.current)return;
+        const refreshedCart=await supabase.from('carts').select('id').eq('user_id',u.id).maybeSingle();
+        if(refreshedCart.error)throw refreshedCart.error;
+        cartId=refreshedCart.data?.id??null;
         const itemIds=new Map<string,string>();const combined=new Map<string,CartItem>();
         if(cartId){const {data,error}=await supabase.from('cart_items').select('id,variant_id,quantity').eq('cart_id',cartId);if(error)throw error;
           const byVariant=new Map((vs.data??[]).map(v=>[v.id,v]));
           for(const item of data??[]){const variant=byVariant.get(item.variant_id);if(!variant)continue;const value={productId:variant.product_id,size:variant.size as Size,color:variant.color,quantity:item.quantity};combined.set(key(value),value);itemIds.set(key(value),item.id);}
-          for(const guestItem of guest.cart){const variant=variants.get(key(guestItem));if(!variant)continue;const old=combined.get(key(guestItem));const quantity=Math.min(99,(old?.quantity??0)+guestItem.quantity);
-            if(old){const {error}=await supabase.from('cart_items').update({quantity}).eq('id',itemIds.get(key(guestItem))!);if(error)throw error;}
-            else{const {data,error}=await supabase.from('cart_items').insert({cart_id:cartId,variant_id:variant,quantity}).select('id').single();if(error)throw error;itemIds.set(key(guestItem),data.id);}
-            combined.set(key(guestItem),{...guestItem,quantity});
-          }
         }
         if(stamp!==generation.current)return;
-        localStorage.removeItem('mc-favorites');localStorage.removeItem('mc-cart');active.current={id:u.id,cartId,variants,itemIds};setFavorites([...known]);replaceCart([...combined.values()]);setUser(u);setSyncError('');
+        localStorage.removeItem('mc-favorites');active.current={id:u.id,cartId,variants,itemIds};setFavorites([...known]);replaceCart([...combined.values()]);setUser(u);sessionBusy.current=false;
+        setSyncError(mergeResult?.remaining?`${mergeResult.remaining} ürün adedi stok sınırı nedeniyle hesabınıza aktarılamadı; misafir sepetinizde korundu.`:'');
       }catch{if(stamp===generation.current){setSyncError('Hesap verileriniz eşitlenemedi. Misafir verileriniz bu tarayıcıda korundu; lütfen tekrar deneyin.');setUser(u);}}
     }
     void supabase.auth.getUser().then(({data})=>{if(loaded.current)void load(data.user)});
@@ -60,7 +68,24 @@ export function StoreProvider({children}:{children:ReactNode}){
     return ()=>{generation.current++;subscription.unsubscribe()};
   },[]);
   useEffect(()=>{if(firstFavoritesSave.current){firstFavoritesSave.current=false;return;}if(loaded.current&&!user&&!active.current)localStorage.setItem('mc-favorites',JSON.stringify(favorites))},[favorites,user]);
-  useEffect(()=>{if(firstCartSave.current){firstCartSave.current=false;return;}if(loaded.current&&!user&&!active.current)localStorage.setItem('mc-cart',JSON.stringify(cart))},[cart,user]);
+  useEffect(()=>{
+    if(firstCartSave.current){firstCartSave.current=false;return;}
+    if(loaded.current&&!user&&!active.current&&!sessionBusy.current){
+      guestQueue.current=guestQueue.current.then(async()=>{
+        await persistGuestCart(cart,guestBase.current);guestBase.current=cart;
+      }).catch(()=>{
+        const saved=readGuestCart();guestBase.current=saved;
+        if(!active.current&&!sessionBusy.current)replaceCart(saved);
+        setSyncError('Misafir sepeti kaydedilemedi veya başka bir sekmede değişti. Kayıtlı sepet korundu; lütfen tekrar deneyin.');
+      });
+    }
+  },[cart,user]);
+  useEffect(()=>{
+    if(typeof window==='undefined')return;
+    const onStorage=(event:StorageEvent)=>{if(event.key!==cartStateStorageKey()||active.current||sessionBusy.current)return;const saved=readGuestCart();guestBase.current=saved;replaceCart(saved);};
+    window.addEventListener('storage',onStorage);
+    return()=>window.removeEventListener('storage',onStorage);
+  },[]);
   function toggleFavorite(id:string){const existing=favorites.includes(id);setFavorites(current=>existing?current.filter(v=>v!==id):[...current,id]);const account=active.current;if(account)persist(async()=>{const {error}=existing?await supabase.from('favorites').delete().eq('user_id',account.id).eq('product_id',id):await supabase.from('favorites').upsert({user_id:account.id,product_id:id},{onConflict:'user_id,product_id'});if(error)throw error;});}
   function saveItem(item:CartItem,quantity:number){const account=active.current;if(!account)return;
     const epoch=account.epoch??0;
@@ -103,7 +128,7 @@ export function StoreProvider({children}:{children:ReactNode}){
     }
   });}
   function addToCart(productId:string,size:Size,color:string,quantity=1){
-    if(active.current?.recovering)return 'Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.';
+    if(sessionBusy.current||active.current?.recovering)return 'Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.';
     if(!Number.isSafeInteger(quantity)||quantity<1)return cartQuantityMessage;
     const item={productId,size,color,quantity};
     const existing=currentCart.current.find(v=>key(v)===key(item));
@@ -114,7 +139,7 @@ export function StoreProvider({children}:{children:ReactNode}){
     saveItem(next,next.quantity);setCartOpen(true);return null;
   }
   function updateQuantity(productId:string,size:Size,color:string,quantity:number){
-    if(active.current?.recovering)return 'Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.';
+    if(sessionBusy.current||active.current?.recovering)return 'Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.';
     const item={productId,size,color,quantity};
     const existing=currentCart.current.find(v=>key(v)===key(item));
     if(!existing)return 'Sepette bu ürün bulunamadı.';
@@ -129,7 +154,7 @@ export function StoreProvider({children}:{children:ReactNode}){
     saveItem(item,quantity);return null;
   }
   function removeFromCart(productId:string,size:Size,color:string){
-    if(active.current?.recovering){setSyncError('Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.');return;}
+    if(sessionBusy.current||active.current?.recovering){setSyncError('Sepet doğrulanıyor. Lütfen sayfayı yenileyip tekrar deneyin.');return;}
     const item={productId,size,color,quantity:1};
     replaceCart(currentCart.current.filter(v=>key(v)!==key(item)));saveItem(item,0);
   }

@@ -12,7 +12,7 @@ CREATE TABLE app_private.cart_merge_receipts (
 ALTER TABLE app_private.cart_merge_receipts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON app_private.cart_merge_receipts FROM PUBLIC, anon, authenticated;
 
-CREATE FUNCTION app_private.merge_guest_cart(p_request_id uuid, p_items jsonb)
+CREATE FUNCTION app_private.merge_guest_cart(p_request_id uuid, p_items jsonb, p_expected_user_id uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
   actor uuid := auth.uid();
@@ -27,6 +27,7 @@ DECLARE
   output jsonb := '[]'::jsonb;
 BEGIN
   IF actor IS NULL THEN RAISE EXCEPTION 'Authentication required' USING ERRCODE='42501'; END IF;
+  IF actor IS DISTINCT FROM p_expected_user_id THEN RAISE EXCEPTION 'Account changed' USING ERRCODE='42501'; END IF;
   IF p_request_id IS NULL OR p_items IS NULL OR jsonb_typeof(p_items) <> 'array' THEN
     RAISE EXCEPTION 'Invalid merge request';
   END IF;
@@ -96,13 +97,13 @@ BEGIN
   RETURN output;
 END;
 $$;
-REVOKE ALL ON FUNCTION app_private.merge_guest_cart(uuid,jsonb) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION app_private.merge_guest_cart(uuid,jsonb,uuid) FROM PUBLIC,anon;
 GRANT USAGE ON SCHEMA app_private TO authenticated;
-GRANT EXECUTE ON FUNCTION app_private.merge_guest_cart(uuid,jsonb) TO authenticated;
-CREATE FUNCTION public.merge_guest_cart(p_request_id uuid,p_items jsonb)
+GRANT EXECUTE ON FUNCTION app_private.merge_guest_cart(uuid,jsonb,uuid) TO authenticated;
+CREATE FUNCTION public.merge_guest_cart(p_request_id uuid,p_items jsonb,p_expected_user_id uuid)
 RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path='' AS $$
-  SELECT app_private.merge_guest_cart(p_request_id,p_items);
+  SELECT app_private.merge_guest_cart(p_request_id,p_items,p_expected_user_id);
 $$;
-REVOKE ALL ON FUNCTION public.merge_guest_cart(uuid,jsonb) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.merge_guest_cart(uuid,jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION public.merge_guest_cart(uuid,jsonb,uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.merge_guest_cart(uuid,jsonb,uuid) TO authenticated;
 COMMIT;

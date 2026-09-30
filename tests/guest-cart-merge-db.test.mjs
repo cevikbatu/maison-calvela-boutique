@@ -29,9 +29,10 @@ test('guest merge SQL draft in isolated PostgreSQL', {skip:!runtime}, async t=>{
  INSERT INTO products VALUES('${product}',true);
  INSERT INTO product_variants VALUES('${variant}','${product}','Siyah','S',5);
  `);
- await db.exec(readFileSync(new URL('../docs/drafts/guest-cart-merge.sql',import.meta.url),'utf8'));
- async function asUser(who=user){await db.query("SELECT set_config('test.user',$1,false)",[who]);await db.exec('SET ROLE authenticated');}
- async function merge(request,items){return (await db.query('SELECT public.merge_guest_cart($1,$2::jsonb) result',[request,JSON.stringify(items)])).rows[0].result;}
+ await db.exec(readFileSync(new URL('../supabase/migrations/20260930173000_guest_cart_merge.sql',import.meta.url),'utf8'));
+ let currentUser=user;
+ async function asUser(who=user){currentUser=who;await db.query("SELECT set_config('test.user',$1,false)",[who]);await db.exec('SET ROLE authenticated');}
+ async function merge(request,items){return (await db.query('SELECT public.merge_guest_cart($1,$2::jsonb,$3) result',[request,JSON.stringify(items),currentUser||null])).rows[0].result;}
  async function quantity(who=user){await db.exec('RESET ROLE');return (await db.query('SELECT i.quantity FROM cart_items i JOIN carts c ON c.id=i.cart_id WHERE c.user_id=$1 AND i.variant_id=$2',[who,variant])).rows[0]?.quantity;}
  await t.test('authenticated merge respects total stock and returns unmerged remainder',async()=>{
   await asUser();await merge(id(),[line(3)]);const result=await merge(id(),[line(3)]);
@@ -69,6 +70,11 @@ test('guest merge SQL draft in isolated PostgreSQL', {skip:!runtime}, async t=>{
  await t.test('anonymous and missing identity are denied',async()=>{
   await db.exec('SET ROLE anon');await assert.rejects(merge(id(),[line(1)]),/permission denied/);
   await db.exec('RESET ROLE');await asUser('');await assert.rejects(merge(id(),[line(1)]),/Authentication required/);await db.exec('RESET ROLE');
+ });
+ await t.test('authenticated user cannot merge into the expected account after session switch',async()=>{
+  await asUser(other);
+  await assert.rejects(db.query('SELECT public.merge_guest_cart($1,$2::jsonb,$3)',[id(),JSON.stringify([line(1)]),user]),/Account changed/);
+  await db.exec('RESET ROLE');
  });
  await t.test('forced failure rolls back all lines and receipt',async()=>{
   await db.query('UPDATE products SET published=true WHERE id=$1',[product]);

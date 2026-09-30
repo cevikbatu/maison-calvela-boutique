@@ -657,6 +657,10 @@ export type Database = {
         Args: { _email: string; _user_id: string }
         Returns: boolean
       }
+      merge_guest_cart: {
+        Args: { p_expected_user_id: string; p_items: Json; p_request_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "customer"

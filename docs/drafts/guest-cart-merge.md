@@ -1,49 +1,34 @@
-# Misafir sepeti birleştirme — onay bekleyen taslak
+# Misafir sepeti birleştirme — yerel uygulama ve canlıya geçiş sınırı
 
-Durum: Veritabanı taslağı; canlıya uygulanmadı. Mevcut istemci birleştirme akışı henüz değiştirilmedi.
+Canlı veritabanına uygulanmadı. Uygulamanın yeni birleştirme çağrısı için `supabase/migrations/20260930173000_guest_cart_merge.sql` gereklidir. Migration yoksa hata gösterilir, misafir kayıtları korunur ve doğrulanmamış hesap değişiklikleri engellenir.
 
-## İnceleme kapsamı
+## Uygulanan davranış
 
-`guest-cart-merge.sql` yalnızca yeni bir özel işlem makbuzu tablosu ve iki fonksiyon ekler. Mevcut ürün, stok, fiyat, rol ve sipariş kayıtlarını değiştirmez. Fonksiyon çağrıldığında yalnızca oturum sahibinin sepetine miktar ekler; stok düşürmez.
+- İşlem kimliği ve değişmeyen misafir anlık görüntüsü RPC çağrısından önce `mc-cart-state-v2` altında saklanır.
+- Beklenen hesap kimliği RPC'ye gönderilir; veritabanı bunu `auth.uid()` ile karşılaştırır. İstemci hesabı yetki kaynağı değildir.
+- Kayıp yanıt sonrası aynı kimlik ve içerikle tekrar denenir. Tamamlanmış makbuz yeniden miktar eklemez.
+- Kabul edilen miktar misafir kaydından düşülür; kalan miktar korunur ve aynı kullanıcıya otomatik tekrar gönderilmez.
+- Oturum geçişinde eski sonuç yeni hesabın yerel durumunu değiştiremez.
+- Web Locks ile aynı tarayıcının sekmeleri koordine edilir. Güvenli kilit desteği yoksa birleştirme reddedilir; süreli localStorage kilidi kullanılmaz.
+- Normal misafir kaydı, beklenen eski sepeti karşılaştırır. Eski sekme yeni kaydı ezemez; çakışma kullanıcıya bildirilir.
+- Bekleyen, sonucu belirsiz birleştirme varken misafir anlık görüntüsü değiştirilmez.
+- Artırma sınırları korunur; önceden stok üstünde kalan satırlar sessizce silinmez.
 
-- `auth.uid()` zorunlu; kullanıcı ID'si istemciden alınmaz.
-- Özel SECURITY DEFINER fonksiyonunun search_path değeri boştur, tablolar tam adlarıyla kullanılır. Yayındaki ürünler açıkça denetlenir.
-- Public sarmalayıcı SECURITY INVOKER kullanır. PUBLIC/anon çalıştırma izni yoktur.
-- Makbuz tablosunda RLS açık, istemci tablo izinleri kapalıdır.
-- `(user_id, request_id)` tekrar denemede aynı sonucu döndürür; aynı kimlikle farklı içerik reddedilir.
-- Sepet, varyant ve mevcut sepet satırı kilitleri işlemin parçasıdır. Hata bütün işlemi geri alır.
-- Eklenebilecek miktar `max(0, min(stok, 99) - hesap_sepetindeki_miktar)` ile sınırlanır.
-- Mevcut miktar stoktan fazlaysa azaltılmaz/silinmez. Misafir miktarının alınamayan kısmı `remaining` olarak döner.
-- Eksik/yayında olmayan varyantlar eklenmez; ilgili misafir miktarı korunmak üzere geri bildirilir.
+## Veritabanı güvenliği
 
-## İstemci entegrasyonundan önce
+Makbuz tablosu `app_private` içinde, RLS açık ve istemci tablo izinleri kapalıdır. Ayrıcalıklı fonksiyon özel şemadadır, boş search_path ve açık auth.uid kontrolü kullanır; public sarmalayıcı invoker olarak çalışır. Anon çağrı yapamaz. Ürün/varyant eşleşmesi tamdır ve ürün yayında olmalıdır. İşlem stok düşürmez veya rezervasyon yapmaz.
 
-1. Taslağı tam yerel Supabase şeması üzerinde ve iki bağımsız PostgreSQL bağlantısıyla test et: aynı işlem kimliği, farklı işlem kimlikleri, normal sepet yazımı ile yarış, stok güncellemesiyle yarış ve oturum değişimi.
-2. Supabase CLI ile migration dosyası oluştur; bu taslağı otomatik migration dizinine henüz taşıma.
-3. Canlı uygulama için kullanıcının ayrıca onayını al; mevcut migrasyonlar ve yetkilerle uyumu kontrol et.
-4. İstemcide işlem kimliği + değişmeyen misafir sepeti anlık görüntüsünü ağ isteğinden ÖNCE kalıcı olarak sakla. Sayfa yenilendiğinde aynı kimlik ve içerikle devam et.
-5. Birleştirme sırasında hesap sepeti yazılarını sıraya al/durdur. Sekmeler arası koordinasyon sağla. Yeni misafir değişikliklerini bekleyen anlık görüntüden ayrı tut.
-6. Başarılı makbuz sonrası yalnızca kabul edilen miktarı misafir kaydından düş; kalan miktarı kullanıcıya göster ve sakla. Yanıt kaybolduğunda yeni işlem kimliği oluşturma.
-7. Tamamlanmış makbuz ile yerel kalan miktarın kaydını tek kalıcı kayıt geçişiyle işle; tekrar girişte aynı kalanı istemeden otomatik yeniden göndermeyi önle.
-8. Güncel hesap sepetini tekrar oku; eski asenkron cevapların yeni oturumu veya sepeti ezmesini önle.
+## Testler ve sınırları
 
-Bu adımlar tamamlanmadan mevcut güvenli birleştirme aşaması tamamlandı sayılmaz. Migration onayı tek başına tüm istemci entegrasyonunun test edildiği anlamına gelmez.
+`MC_PGLITE_MODULE` geçici dizindeki `@electric-sql/pglite@0.5.8/dist/index.js` dosyasını gösterdiğinde gerçek PostgreSQL motorunda izole fixture testleri çalışır. Gerçek Supabase URL veya secret kullanılmaz. Bu değişken yoksa isteğe bağlı DB testi skip olur.
 
-## İzole test
+Client testleri gerçek TypeScript modülünü mock storage/RPC/Web Locks ile çalıştırır. Provider testleri başarılı/kısmi/başarısız login birleşmesini kapsar. Tarayıcıda mock API ile iki sekmede azaltma/kaldırma senkronizasyonu kontrol edildi.
 
-Test bağımlılığı proje package.json/lock dosyalarına eklenmedi. Geçici dizinde `@electric-sql/pglite@0.5.8` kullanıldı. Testler bellek içi PostgreSQL oluşturur; Supabase URL/secret kullanmaz.
+PGlite tek bağlantılıdır. Ayrı PostgreSQL bağlantıları arasındaki kilit rekabeti, tam Supabase migration zinciri ve PostgREST kimlik aktarımı bu testlerle doğrulanmış sayılmaz. Aynı veritabanındaki normal sepet yazımları başka cihazlarda çalışmaya devam edebileceğinden, işlem sonrası stok değişimleri için son sipariş doğrulaması ayrıca gerekir.
 
-PowerShell:
+## Canlı uygulamadan önce
 
-```powershell
-$env:MC_PGLITE_MODULE = Join-Path $env:TEMP 'maison-calvela-db-tests/node_modules/@electric-sql/pglite/dist/index.js'
-node --test tests/guest-cart-merge-db.test.mjs
-```
-
-Ortam değişkeni verilmezse bu isteğe bağlı test atlanır; bu durum başarıyla doğrulanmış veritabanı testi olarak raporlanmamalıdır.
-
-10 senaryo (üst testle birlikte 11 test) geçti. Fixture üretim şemasının ilgili kolon/constraint alt kümesini temsil eder; tüm Supabase migration zincirini, PostgREST/JWT davranışını veya çok bağlantılı kilit rekabetini doğrulamaz.
-
-## Devam engeli
-
-Bu makinede `supabase`, `docker`, `psql` komutları bulunamadı. PGlite, SQL ve yetki testlerini mümkün kıldı ancak gerçek çok bağlantılı eşzamanlılık doğrulamasını karşılamaz. Bir sonraki işlem izole, çok bağlantılı PostgreSQL/Supabase test ortamı sağlamaktır. Canlı Supabase test ortamı olarak kullanılmamalıdır.
+1. Tam izole Supabase/PostgreSQL ortamında migration zincirini ve iki bağlantılı kilit rekabetini doğrula.
+2. Canlı migration için kullanıcı onayı al. Şu ana kadar canlı DDL/veri işlemi yapılmadı.
+3. Migration ile uyumlu istemci sürümünü birlikte yayınla; bu görevde yayın/push yok.
+4. Gerçek hesapla giriş ve oturum değiştirme kontrolünü kullanıcı ile yap.
