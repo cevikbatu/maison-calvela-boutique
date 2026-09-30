@@ -1,5 +1,7 @@
 -- Retail prices are intentionally public storefront data; mutations remain admin-only.
-GRANT SELECT ON public.product_prices TO anon, authenticated;
+-- Explicit column privileges survive future private-column additions without exposing them.
+REVOKE SELECT ON public.product_prices FROM PUBLIC, anon, authenticated;
+GRANT SELECT (product_id, price, sale_price, updated_at) ON public.product_prices TO anon, authenticated;
 DROP POLICY IF EXISTS prices_public_read ON public.product_prices;
 CREATE POLICY prices_public_read ON public.product_prices
 FOR SELECT TO anon, authenticated
