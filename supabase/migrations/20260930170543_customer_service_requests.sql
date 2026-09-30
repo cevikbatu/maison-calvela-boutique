@@ -58,7 +58,7 @@ BEGIN
  OR p_reason IS NULL OR p_description IS NULL OR length(p_reason)>1000 OR length(p_description)>5000
  OR (p_kind='exchange' AND length(btrim(p_reason))=0) THEN RAISE EXCEPTION 'invalid request';END IF;
  -- Lock the order for consistent ownership/delivery checks and serialize repeat submissions.
- SELECT * INTO item FROM public.order_items WHERE id=p_order_item_id;
+ SELECT * INTO item FROM public.order_items WHERE id=p_order_item_id FOR SHARE;
  SELECT * INTO purchase FROM public.orders WHERE id=item.order_id AND user_id=actor FOR SHARE;
  IF purchase.id IS NULL THEN RAISE EXCEPTION 'order not accessible';END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(p_id::text,7650));
