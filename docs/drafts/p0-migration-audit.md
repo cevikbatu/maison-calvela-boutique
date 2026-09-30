@@ -1,5 +1,21 @@
 # P0 migration denetimi — 30 Eylül 2026
 
+## İkinci P0 turu — güncel değişiklikler
+
+Aşağıdaki ilk denetim tablosu tarihsel başlangıçtır. Bu tur aynı **uygulanmamış** 19 dosyalık zincirde üç pending migration güncellendi; yeni migration sayısı eklenmedi:
+
+- `20260930170543`: private `request_photo_slots` (PK request/upload, unique request/slot, slot 1–3 CHECK, SHA-256 CHECK, FK), RLS ve service-role-only reserve/complete RPC'leri. Request row lock atomik kota sağlar. Üç slot dahil pending slotlar sayılır; retry aynı hash/ID ile yeniden kullanır. Storage direct INSERT/UPDATE/DELETE restrictive policy ile client'a kapalı; okuma sadece tamamlanmış slot + owner/admin. Anon okumaya ayrıca restrictive sınır eklendi. Byte doğrulaması DB'de değil, Node decoder hattındadır.
+- `20260930173000`: normal cart INSERT/UPDATE/DELETE authenticated grant'leri kaldırıldı; normal kayıt `set_cart_quantity` RPC'sine taşındı. UID, aynı parent cart lock ve expected quantity karşılaştırması eski miktarın merge sonucunu ezmesini engeller. Artış DB stok/99 ile sınırlı; azaltma/silme stok yetersizliğinde mümkün. Eski doğrudan yazım artık permission denied. Client fallback yoktur. Aynı kilit sırası parent cart → product/variant → item kullanılır. Gerçek deadlock/concurrency hâlâ NOT TESTED.
+- `20260930180000`: tablo düzeyi SELECT yerine yalnız `(product_id,price,sale_price,updated_at)` kolon grant'leri. Bu explicit kolon yaklaşımı mevcut storefront/admin sorgularını değiştirmeden gelecekte eklenen cost kolonunu dışarı kapatır. Test migration sonrasında `private_cost` ekleyip anon/auth SELECT ve SELECT * reddini doğrular. Tabloya ileride yeni public alan eklenecekse bilinçli grant gerekir; maliyet ayrı private tabloda tutulması tavsiyesi sürer.
+
+Yeni private tablo/anahtarlar mevcut veriyi silmez. FK/DDL kısa kilitler oluşturabilir. Bu dosyalar daha önce bir ortama uygulanmışsa edit edilmiş dosyaları yeniden çalıştırmak yerine ayrı forward migration hazırlanmalıdır. Canlıya uygulanmadıkları kullanıcı bağlamıdır; remote state bu tur da sorgulanmadı.
+
+Kanıtlar: `p0-mutations-db.test.mjs`, `service-authorization-chain.test.mjs`, `public-prices-db.test.mjs`, `photo-validation.test.mjs`. Gerçek hizmet çalıştırma planı: [p0-local-environment.md](p0-local-environment.md).
+
+---
+
+## İlk denetim (yukarıdaki güncellemelerden önce)
+
 Yalnız repository ve izole yerel testler incelendi. Canlı şema/migration geçmişi okunmadı veya değiştirilmedi. “Pending” burada önceki çalışma raporundaki dört uygulanmamış dosyayı ifade eder; remote migration listesiyle doğrulanmış değildir.
 
 ## Sıra ve kapsam

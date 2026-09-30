@@ -1,5 +1,42 @@
 # Yerel geliştirme ve canlıya geçiş sınırı
 
+## Son P0 turu — 30 Eylül 2026 (güncel)
+
+Yerel kod commitleri: `3f54418` (cart/merge ortak kilit RPC), `7c68ab0` (retail kolon yetkileri), `7400455` (server fotoğraf hattı, Storage slotları, indexing guard ve testler). Push yapılmadı.
+
+Bu bölüm aşağıdaki önceki raporların yerini alır. P0 genel durumu **BLOCKED**: gerçek bağımsız bağlantı PostgreSQL ve gerçek Supabase HTTP ortamı yok. Bunların kurulumu otomatik yapılmadı; minimum adımlar [yerel ortam belgesinde](p0-local-environment.md).
+
+| Kontrol | Güncel durum | Kanıt |
+| --- | --- | --- |
+| Normal cart write / guest merge kayıp güncellemesi | PASS (SQL seri interleaving), NOT TESTED (gerçek yarış) | Aynı parent lock + expected quantity RPC; doğrudan client cart DML kapalı. `p0-mutations-db.test.mjs`, `cart-stock.test.mjs`. |
+| Gerçek concurrency / deadlock / eşzamanlı slot | BLOCKED | `guest-cart-concurrency.test.mjs` hazır; normal write vs merge ve slot yarışları eklendi. PostgreSQL sunucusu yok; SKIP. |
+| Server upload / byte decode | PASS (yerel decoder ve handler testleri) | `server/photos/`, `photo-validation.test.mjs`: gerçek JPEG/PNG/WebP, sahte tür, zero byte, corrupt/truncated, şüpheli trailing içerik, >5 MB, aşırı piksel. Metadata'sız WebP. |
+| Server quota / idempotency | PASS (PGlite) | Üç slot, request lock, upload ID/hash replay; 4. slot reddi. `p0-mutations-db.test.mjs`. Gerçek concurrent servis testi bekliyor. |
+| Direct Storage client write kapatma | PASS (SQL), NOT TESTED (HTTP) | Pending migration restrictive INSERT/UPDATE/DELETE sınırı; owner/admin completed-object read. `service-authorization-chain.test.mjs`. |
+| JWT → PostgREST / Storage HTTP / signed URL expiry | NOT TESTED | `supabase-http.test.mjs` loopback-only opt-in hazır; local Supabase bulunmadığından SKIP. |
+| Public price policy | PASS | Tablo SELECT kaldırıldı, dört retail kolonuna explicit grant. Sonradan private_cost eklenerek anon/auth erişim reddi test edildi. |
+| Secret tracking audit | PASS (metadata incelemesi), BLOCKED (tam geçmiş secret taraması) | `.env` tracked; `.env.local` ignored. [Değersiz denetim raporu](secret-tracking-audit.md). Key/rotation/geçmiş değişikliği yapılmadı. |
+| Client bundle server-secret ayrımı | PASS (bu build'in isim/modül taraması) | Public output'ta SUPABASE_SERVICE_ROLE_KEY, PHOTO_UPLOAD_SERVICE_ROLE_KEY ve native upload modülü bulunmadı. Bütün deploy konfigürasyonlarına dair genel kanıt değildir. |
+| Staging indexing guard | PASS | `VITE_PUBLIC_INDEXING_ENABLED` default off. `indexing.test.mjs`: gerçek page/product metadata dahil. Local HTTP: kapalı modda root noindex, robots Disallow, sitemap 404; açık modda robots/sitemap 200. Local mock API kullanıldı. |
+| Clean migration chain | PASS (PGlite) | Aynı 19 migration yeniden uygulandı. |
+| Upgrade chain | PASS (PGlite) | 15 eski + 4 güncellenmiş pending; mevcut fixture stok/SKU/adres korundu. |
+| Authorization / service request / guest cart / retail tests | PASS (yerel) | Tüm test setine dahil; admin/owner erişim kontrolü gevşetilmedi. |
+| Tüm testler | PASS + 2 NOT TESTED | **191 toplam, 189 pass, 0 fail, 2 skip**. Skip: gerçek PostgreSQL ve Supabase HTTP. |
+| TypeScript | PASS | `tsc --noEmit --pretty false`, exit 0. |
+| Production build | PASS | Geçici kopyada Vite/Nitro build, exit 0. Ana routeTree değiştirilmedi. |
+
+### Önemli işletim sınırları
+
+Upload decoder yeni `sharp@0.35.5` native bağımlılığıdır; Cloudflare içine taşınmaz, ayrı Node servisinde çalışır. Son kullanıcı UI'si aynı-origin proxy kullanır. Node servisi/matching migration'lar/env olmadan upload 503 verir; güvensiz doğrudan upload fallback'i yoktur. Fotoğrafsız başvuru korunur. Normal cart RPC de matching migration gerektirir; eski şemaya eksik deploy yapılmamalı. Canlıya hiçbir dosya uygulanmadı.
+
+Kalan P0 engelleri: gerçek multi-connection DB/Storage/Auth HTTP doğrulaması; Node servisinin hedef ortam/ingress/secret/memory sınırlarının doğrulanması; kalıcı yarım kalmış slotların audit'li operasyonel kurtarma prosedürü. Başarısız/şüpheli upload'a otomatik yeni slot veya overwrite verilmez. İzole ortam sağlanınca hazır testler çalıştırılmalıdır.
+
+Gelişmiş müşteri/fiyat/ayar UI'ları, gerçek mail, ödeme, DNS ve deployment bu tur yapılmadı. Önceden kalan ZIP'ler ve `supabase/.temp/` korunur, commit'e dahil edilmez.
+
+---
+
+## Önceki raporlar (tarihsel)
+
 Bu çalışma `gelistirme` üzerindedir. Push, merge, DNS değişikliği, deployment, ödeme ve gerçek e-posta gönderimi yapılmamıştır. Canlı Supabase'e migration veya veri yazımı yapılmamıştır.
 
 ## Uygulanmamış migration dosyaları

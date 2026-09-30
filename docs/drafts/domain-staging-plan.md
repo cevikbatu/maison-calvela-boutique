@@ -1,5 +1,13 @@
 # calvela.com ve staging — uygulama yapılmamış teknik plan
 
+## Güncel indexing guard
+
+Kod düzeyindeki guard eklendi: `VITE_PUBLIC_INDEXING_ENABLED` public **build-time** ayarı yalnız tam `true` olduğunda ve `VITE_PUBLIC_SITE_URL` geçerli production HTTPS origin olduğunda indekslemeyi açar. Varsayılan kapalıdır; staging/preview/test/localhost isimleri ve IP originler true olsa bile reddedilir. Bu bayrak secret değildir. Değiştirilirse yeniden build gerekir; staging ve production ayrı build/environment kullanmalıdır.
+
+Kapalı modda server bütün yanıtlarına `X-Robots-Tag: noindex, nofollow` ekler, root HTML robots meta noindex olur, robots.txt `Disallow: /` döner, sitemap 404 olur; sayfa ve ürün canonical/production URL üretilmez. Açık production modunda mevcut SEO origin/robots/sitemap korunur. Kaynak: `src/lib/indexing.ts`, `indexing-config.ts`, `src/server.ts`, root/meta/robots/sitemap. Test: `tests/indexing.test.mjs`.
+
+Aşağıdaki eski robots riski artık kaynak kodda giderildi. Access, alternatif hostname güvenliği, DNS ve canlı staging HTTP doğrulaması yine ayrı gerekliliktir; noindex erişim koruması değildir.
+
 ## Mimari ve hedef
 
 Mevcut Vite/TanStack Start uygulaması SSR/server fonksiyonları ve Nitro Cloudflare çıktısı üretir. Statik dosya hosting'i tek başına yeterli değildir. Bu stack için ilk seçenek Cloudflare Workers + Custom Domains'dir. Worker hesabı/ismi, ücretli limitler, runtime uyumluluğu, staging build ve server secret erişimi doğrulanmadan üretim seçimi kesinleşmiş sayılmaz. Alternatif Node hosting seçilirse Nitro preset ve aynı SSR/auth testleri ayrıca gerekir.
