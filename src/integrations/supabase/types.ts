@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      default_addresses: {
+        Row: {user_id: string; address_id: string}
+        Insert: {user_id: string; address_id: string}
+        Update: {user_id?: string; address_id?: string}
+        Relationships: []
+      }
       addresses: {
         Row: {
           city: string
