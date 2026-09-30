@@ -13,7 +13,8 @@ import { pageMeta } from '@/lib/page-meta';
 export const Route=createFileRoute('/profil')({head:()=>pageMeta('Profil','Maison Calvela hesabınız, adresleriniz, favorileriniz ve gerçek siparişleriniz.'),component:ProfilePage});
 
 type Order=Pick<Tables<'orders'>,'id'|'status'|'created_at'>;
-function ProfilePage(){
+function ProfilePage(){const {user}=useStore();return <ProfileContent key={user?.id??'guest'}/>;}
+function ProfileContent(){
  const {user,favorites,cart,syncError}=useStore();const [mode,setMode]=useState<'login'|'signup'|'reset'>('login');const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [notice,setNotice]=useState('');const [busy,setBusy]=useState(false);const [name,setName]=useState('');const [orders,setOrders]=useState<Order[]>([]);const [marketing,setMarketing]=useState(false);
  useEffect(()=>{if(!user)return;let alive=true;void Promise.all([supabase.from('profiles').select('display_name').eq('id',user.id).maybeSingle(),supabase.from('orders').select('id,status,created_at').eq('user_id',user.id).order('created_at',{ascending:false}),supabase.from('customer_preferences').select('marketing_consent').eq('user_id',user.id).maybeSingle()]).then(([p,o,m])=>{if(!alive)return;setName(p.data?.display_name??'');setOrders(o.data??[]);setMarketing(m.data?.marketing_consent??false);if(p.error||o.error||m.error)setNotice('Hesap bilgileri yüklenemedi. Lütfen yeniden deneyin.');});return()=>{alive=false};},[user?.id]);
  async function submit(e:FormEvent){e.preventDefault();setBusy(true);setNotice('');try{if(mode==='signup'){if(password.length<12)throw new Error('Şifreniz en az 12 karakter olmalı.');const {error}=await supabase.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:`${window.location.origin}/profil`}});if(error)throw error;setPassword('');setNotice('Hesabınızı doğrulamak için e-postanıza gönderilen bağlantıyı açın. Kayıt varsa aynı adres için yeni hesap açılmaz.');setMode('login');}

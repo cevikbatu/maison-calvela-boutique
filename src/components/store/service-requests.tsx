@@ -12,7 +12,7 @@ export function ServiceRequests({userId,email}:{userId:string;email:string}){
  const pending=useRef<{id:string;draft:RequestDraft}|null>(null),writing=useRef(false),alive=useRef(true);
  useEffect(()=>{alive.current=true;void load();return()=>{alive.current=false;};},[userId]);
  async function load(){setLoading(true);setError('');try{
-  const [r,i]=await Promise.all([supabase.from('service_requests').select('*').eq('user_id',userId).order('created_at',{ascending:false}),supabase.from('order_items').select('id,order_id,product_id,variant_id')]);
+  const [r,i]=await Promise.all([supabase.from('service_requests').select('*').eq('user_id',userId).order('created_at',{ascending:false}),supabase.from('order_items').select('id,order_id,product_id,variant_id,orders!inner(user_id)').eq('orders.user_id',userId)]);
   if(r.error||i.error)throw new Error();if(alive.current){setRows(r.data??[]);setItems(i.data??[]);setReady(true);}
  }catch{if(alive.current){setReady(false);setError('Başvurular şu anda yüklenemiyor. Lütfen tekrar deneyin.');}}finally{if(alive.current)setLoading(false);}}
  async function submit(event:FormEvent){event.preventDefault();if(writing.current)return;writing.current=true;setBusy(true);setError('');setNotice('');
