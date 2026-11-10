@@ -33,3 +33,8 @@ supabase/.temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files: real values stay on disk and never enter git
+.env
+.env.*
+!.env.example
